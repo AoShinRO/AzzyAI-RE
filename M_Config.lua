@@ -4,12 +4,12 @@ AggroSP                  = 0
 OldHomunType			= 3
 UseSkillOnly             = -1 
 UseAttackSkill           = 1
-OpportunisticTargeting   = 1
+OpportunisticTargeting   = 0
 DoNotChase               = 0
 UseDanceAttack           = 0
 SuperPassive             = 0
 AttackLastHPSP			=80
-UseIdleWalk              = 2
+UseIdleWalk              = 0
 IdleWalkSP               = 80
 IdleWalkDistance         = 4
 RelativeRoute            = 1
@@ -27,7 +27,7 @@ UseAutoPushback          = 0
 AutoPushbackThreshold    = 2
 UseHomunSSkillChase = 1
 UseHomunSSkillAttack = 1 
-AutoSkillDelay           = 100 
+AutoSkillDelay           = 400 
 AoEMaximizeTargets       = 0
 CastTimeRatio		= .80
 
@@ -51,8 +51,8 @@ UseKyrieOwner            = 0
 
 
 FollowStayBack           = 2
-StationaryAggroDist      = 15
-MobileAggroDist          = 15
+StationaryAggroDist      = 12
+MobileAggroDist          = 7
 StationaryMoveBounds     = 14
 MobileMoveBounds         = 9
 DoNotUseRest             = 0
@@ -63,7 +63,7 @@ MoveSticky               = 0
 MoveStickyFight          = 0
 
 --Kiting options:
-KiteMonsters             = 1
+KiteMonsters             = 0
 KiteBounds               = 10 
 KiteStep                 = 5
 KiteParanoidStep         = 2
@@ -78,7 +78,7 @@ StickyStandby            = 1
 
 --Advanced Timing settings 
 SpawnDelay               = 1000
-AutoSkillDelay           = 100
+AutoSkillDelay           = 400
 AttackTimeLimit          = 10000
 --Berzerk Settings:
 
@@ -96,12 +96,12 @@ MirAIFriending           = 1
 TankMonsterLimit         = 4
 
 AssumeHomun              = 1
-AutoDetectPlant          = 0
+AutoDetectPlant          = 1
 RescueOwnerLowHP         = 0
 AttackLastFullSP         = 0
 AutoSkillLimit           = 100
 AoEReserveSP             = 0
-AoEFixedLevel            = 1
+AoEFixedLevel            = 0
 ChaseSPPause             = 0
 ChaseSPPauseSP           = 0
 ChaseSPPauseTime         = 0
@@ -115,7 +115,7 @@ Berserk_Dance            = 0
 Berserk_IgnoreMinSP      = 0
 PVPmode                  = 0
 ProvokeOwnerMobbed       = 0
-LastSavedDate            = "06/01/2024 15:26:51"
-LagReduction             = 1
+LastSavedDate            = "Default Configuration 1.56"
+LagReduction             = 0
 LiveMobID                = 0
 DoNotAttackMoving        = 0

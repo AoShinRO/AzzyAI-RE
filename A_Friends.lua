@@ -7,9 +7,4 @@
 --MyFriends{2322797}=KOS
 --Possible values are NEUTRAL, KOS (kill on sight), ENEMY (assume hostile, but don't attack), and ALLY (assume friendly).
 MyFriends={}
-MyFriends[2003516]=1 -- 
-MyFriends[110371312]=1 -- 
-MyFriends[1529417]=1 -- 
-MyFriends[2000028]=1 -- 
-MyFriends[111873449]=1 -- 
-MyFriends[110005661]=1 -- 
+MyFriends[1529417]=1 -- Azzy's alt account

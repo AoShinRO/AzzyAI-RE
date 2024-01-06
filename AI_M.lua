@@ -32,6 +32,9 @@ function WriteStartupLog(Version,ErrorCode,ErrorInfo)
 		AUVersion="1.30b or earlier"
 		ErrorCode="File version error"
 		ErrorInfo=ErrorInfo.."AzzyUtil.lua no version found"
+	elseif string.gfind(AUVersion,verspattern)()~="1.56" then
+		ErrorCode="File version error"
+		ErrorInfo=ErrorInfo.."AzzyUtil.lua wrong version "..string.gfind(AUVersion,verspattern)().."\n"
 	end
 	TestFile=io.open("./AI/USER_AI/data/testM.txt","w") --different name since they'd be potentially running simulaneously if user logged in with homun and merc out
 	if TestFile~=nil then
@@ -44,11 +47,17 @@ if CVersion==nil then
 		CVersion="1.30b or earlier"
 		ErrorCode="File version error"
 		ErrorInfo=ErrorInfo.."Const_.lua no version found"
+	elseif string.gfind(CVersion,verspattern)()~="1.56" then
+		ErrorCode="File version error"
+		ErrorInfo=ErrorInfo.."Const_.lua wrong version "..string.gfind(CVersion,verspattern)().."\n"
 	end
 	if MainVersion==nil then
 		MainVersion="1.30b or earlier"
 		ErrorCode="File version error"
 		ErrorInfo=ErrorInfo.." AI_main.lua no version found"
+	elseif string.gfind(MainVersion,verspattern)()~="1.56" then
+		ErrorCode="File version error"
+		ErrorInfo=ErrorInfo.."AI_main.lua wrong version "..string.gfind(MainVersion,verspattern)().."\n"
 	end
 	--[[
 	if fsize("./AI/USER_AI/AzzyUtil.lua")~=AULen then

@@ -1,10 +1,10 @@
 -------------------------------
--- This file is part of AzzyAI 1.54
+-- This file is part of AzzyAI 1.55
 -- If you want to use these functions in your own AI
 -- it is reccomended that you use the seperately available
 -- version, which does not utilize AAI-specific systems. 
 -- Written by Dr. Azzy of iRO Chaos
-AUVersion="1.541"
+AUVersion="1.56"
 -------------------------------
 
 
@@ -207,7 +207,7 @@ function	GetPVPTact(t,m)
 end
 
 function	GetClass(m)
-	if (m >= MagicNumber) then
+	if (m < MagicNumber) then
 		return 10
 	elseif (IsActive[m]==0 and AutoDetectPlant==1) then
 		return 11
@@ -265,7 +265,7 @@ function GetTargetClass(id)
 		return 1
 	elseif id == 0 then
 		return 0
-	elseif (id >= MagicNumber2 and id <= MagicNumber3) then
+	elseif (id > MagicNumber2) then
 		if IsFriendOrSelf(id)==1 then
 			return 2
 		else
@@ -319,7 +319,7 @@ function IsFriendOrSelf(id)
 end
 
 function IsPlayer(id)
-	if (id>=MagicNumber2 and id <= MagicNumber3) then
+	if (id>MagicNumber2) then
 		return 1
 	else
 		return 0
@@ -327,7 +327,7 @@ function IsPlayer(id)
 end
 
 function UpdateFriends() 
-	FriendsFile = io.open("AI/USER_AI/A_Friends.lua", "w")
+	FriendsFile = io.open(ConfigPath.."A_Friends.lua", "w")
 	if FriendsFile~=nil then
 		FriendsFile:write (STRING_A_FRIENDS_HEAD)
 		for k,v in pairs(MyFriends) do
@@ -915,7 +915,11 @@ function Move(myid,x,y)
 		logappend("AAI_ERROR","Attempt to move to location "..x..","..y.." which is "..dis2owner.." cells from owner, call disregarded")
 		return 
 	elseif dis > 15  then
-		factor = 15/dis
+		--factor = 14/dis
+		factor=0.5+((math.random(3)-2)*0.1)
+		if dis > 25 then 
+			factor =0.4+((math.random(3)-2)*0.1)
+		end
 		local dx,dy = x-ox,y-oy
 		if math.random(2)==1 then
 			dx=math.ceil(factor*dx)
@@ -927,6 +931,21 @@ function Move(myid,x,y)
 		else 
 			dy=math.floor(factor*dy)
 		end
+		if _VERSION=="Lua 5.1" then 
+			while TakenCells[(x+dx).."_"..(y+dy)] do
+				factor=factor-0.08
+				if math.random(2)==1 then
+					dx=math.ceil(factor*(x-ox))
+				else 
+					dx=math.floor(factor*(x-ox))
+				end
+				if math.random(2)==1 then
+					dy=math.ceil(factor*(y-oy))
+				else 
+					dy=math.floor(factor*(y-oy))
+				end
+			end
+		end
 		if x==MyDestX and y==MyDestY then
 			newx=ox+dx
 			newy=oy+dy
@@ -935,17 +954,30 @@ function Move(myid,x,y)
 		else
 			newx=ox+dx
 			newy=oy+dy
-			TraceAI("MOVE: Attempt to move more than 15 cells, destination adjusted: "..x..","..y..dis.." "..factor.."new: "..newx..","..newy)
+			TraceAI("MOVE: Attempt to move more than 15 cells, destination adjusted: "..x..","..y.." "..dis.." "..factor.."new: "..newx..","..newy)
 		end
 	end
-	return OldMove(myid,newx,newy)
+	if (LagReduction and LagReduction ~=0) then
+		modtwROMoveX,modtwROMoveY=x,y
+		return
+	else 
+		return OldMove(myid,newx,newy)
+	end
 end
+
+
 OldSkillObject=SkillObject
 function SkillObject(myid,lvl,skill,target)
 	if skill==8041 or skill==8043 or skill==8020 or skill==8025 then
 		logappend("AAI_ERROR","Attempted to use skill "..SkillInfo[skill][1].." improperly. Check for corrupt H_SkillInfo or badly behaved addon")
 	else
-		return OldSkillObject(myid,lvl,skill,target)
+		if (LagReduction and LagReduction ~=0) then
+			modtwROSkillObjectID=skill
+			modtwROSkillObjectLV=lvl
+			modtwROSkillObjectTarg=target
+		else
+			return OldSkillObject(myid,lvl,skill,target)
+		end
 	end
 end
 
@@ -954,7 +986,23 @@ function Attack(myid,target)
 	if SuperPassive==1 then
 		TraceAI("Notice: Attack() called while in SuperPassive. MyEnemy "..MyEnemy.." MyState "..MyState)
 	end
-	OldAttack(myid,target)
+	if (LagReduction and LagReduction ~=0) then
+		modtwROAttackTarget=target
+	else
+		return OldAttack(myid,target)
+	end
+end
+
+OldSkillGround=SkillGround
+function SkillGround(myid,lvl,skill,x,y)
+	if (LagReduction and LagReduction ~=0) then
+		modtwROSkillGroundX=x
+		modtwROSkillGroundY=y
+		modtwROSkillGroundID=skill
+		modtwROSkillGroundLV=lvl
+	else
+		return OldSkillGround(myid,lvl,skill,x,y)
+	end
 end
 
 function	GetDistance (x1,y1,x2,y2)
@@ -1324,37 +1372,59 @@ end
 function AdjustStandPoint (x,y,tx,ty,r,alt)
 	if _VERSION=="Lua 5.1" then
 		-- Now we need to make sure x and y are not on occupied cells, because of the changes to the client
+		local bounds=GetMoveBounds()
+		local logstring=""
+		if (alt==nil) then
+			logstring=logstring.."x,y"..x..","..y.." tx,ty"..tx..","..ty.." r "..r.."alt nil bounds "..bounds.." | "
+		else 
+			logstring=logstring.."x,y"..x..","..y.." tx,ty"..tx..","..ty.." r "..r.."alt "..alt.." bounds "..bounds.." | "
+		end
 		local i=0
-		while TakenCells[x.."_"..y] do
+		
+		while (TakenCells[x.."_"..y] or GetDistanceAPR(GetV(V_OWNER,MyID),x,y) > bounds) do
 			i=i+1
-			if range==1 then
+			if (TakenCells[x.."_"..y]) then
+				logstring=logstring.."i="..i.."tc="..TakenCells[x.."_"..y].."d ".. GetDistanceAPR(GetV(V_OWNER,MyID),x,y).." :"
+			else 
+				logstring=logstring.."i="..i.."tc= nil d ".. GetDistanceAPR(GetV(V_OWNER,MyID),x,y).." :"
+			end
+			if r==1 then
 				if alt==nil or alt==0 then
 					x,y=AdjustCW(x,y,tx,ty)
+					logstring=logstring.."CW "..x..","..y
 				elseif alt==1 then
 					x,y=AdjustCCW(x,y,tx,ty)
+					logstring=logstring.."CCW "..x..","..y
 				else --alt=2
 					x,y=AdjustOpp(x,y,tx,ty)
+					logstring=logstring.."OPP "..x..","..y
 					alt=0
 				end
 				if i > 7 then
-					x,y=-1,-1
-					break
+					logappend("AAI_CLOSEST","AdjustStandPoint() FAILED  logstring="..logstring)
+
+		TraceAI("AdjustStandPoint() FAILED logstring="..logstring)
+					return -1,-1
 				end
 			else
 				if alt==nil or alt==0 then
 					x,y=AdjustCWr(x,y,tx,ty,r)
+					logstring=logstring.."CWr "..x..","..y
 				elseif alt==1 then
 					x,y=AdjustCCWr(x,y,tx,ty,r)
+					logstring=logstring.."CCWr "..x..","..y
 				else --alt=2
 					x,y=x*-1,y*-1
+					logstring=logstring.."Opp R "..x..","..y
 					alt=0
 				end
 				if i > 7 then
-					x,y=-1,-1
-					break
+					logappend("AAI_CLOSEST","AdjustStandPoint() FAILED  logstring="..logstring)
+					return -1,-1
 				end
 			end
 		end
+		logappend("AAI_CLOSEST","AdjustStandPoint() returned "..x.." , "..y.." logstring="..logstring)
 	end
 	return x,y
 end
@@ -1753,16 +1823,16 @@ function GetComboSkill(myid)
 	local level = 0
 	if (IsHomun(myid)==1) then
 		htype=GetV(V_HOMUNTYPE,myid)
-		if htype==ELEANOR and MySpheres > AutoComboSpheres then
+		if htype==ELEANOR then
 			if EleanorMode==0 or EleanorDoNotSwitchMode==1 then
-				if ComboSCTimeout > GetTick() then
+				if ComboSCTimeout > GetTick() and MySpheres >= AutoComboSpheres then
 					skill=MH_SILVERVEIN_RUSH
 					if EleanorSilverveinLevel==nil then
 						level=5
 					else
 						level=EleanorSilverveinLevel
 					end
-				elseif ComboSVTimeout > GetTick() then
+				elseif ComboSVTimeout > GetTick()  then
 					skill=MH_MIDNIGHT_FRENZY
 					if EleanorMidnightLevel==nil then
 						level=5
@@ -1784,23 +1854,27 @@ function GetGrappleSkill(myid)
 	local level = 0
 	if (IsHomun(myid)==1) then
 		htype=GetV(V_HOMUNTYPE,myid)
-		if htype==ELEANOR and MySpheres > AutoComboSpheres then
+		if htype==ELEANOR and MySpheres >= AutoComboSpheres then
 			if EleanorMode==1 or EleanorDoNotSwitchMode==1 then
 				if ComboSCTimeout > GetTick() then
-					skill=MH_CBC
-					if EleanorCBCLevel==nil then
-						level=5
-					else
-						level=EleanorCBCLevel
+					if MySpheres >= AutoComboSpheres -1 then
+						skill=MH_CBC
+						if EleanorCBCLevel==nil then
+							level=5
+						else
+							level=EleanorCBCLevel
+						end
 					end
-				elseif ComboSVTimeout < GetTick() then
-					skill=MH_EQC
-					if EleanorEQCLevel==nil then
-						level=5
-					else
-						level=EleanorEQCLevel
+				elseif ComboSVTimeout > GetTick() then
+					if MySpheres >= AutoComboSpheres -1 then
+						skill=MH_EQC
+						if EleanorEQCLevel==nil then
+							level=5
+						else
+							level=EleanorEQCLevel
+						end
 					end
-				else
+				elseif MySpheres >= AutoComboSpheres then
 					skill=MH_TINDER_BREAKER
 					if EleanorTinderBreakerLevel==nil then
 						level=5
@@ -1889,6 +1963,15 @@ function GetDebuffSkill(myid)
 				level=EiraSilentBreezeLevel
 			end
 			return skill,level
+		elseif GetV(V_HOMUNTYPE,MyID)==DIETER and UseDieterVolcanicAsh==1 then
+			skill=MH_VOLCANIC_ASH
+			level=5
+			local t = GetTick()
+			if (AshTimeout[1] < t or AshTimeout[2] < t or AshTimeout[3] < t) then
+				return skill,level
+			else 
+				return 0,0
+			end
 		end
 	else
 		for i,v in ipairs(DebuffSkillList) do
@@ -1983,7 +2066,7 @@ function GetMobSkill(myid)
 			elseif htype==DIETER and UseDieterLavaSlide==1 and LavaSlideMode==0 then
 				skill=MH_LAVA_SLIDE
 				if DieterLavaSlideLevel==nil then
-					level=5
+					level=10
 				else
 					level=DieterLavaSlideLevel
 				end
@@ -2115,7 +2198,11 @@ function	GetSOwnerBuffSkill(myid)
 			skillopt=UseEiraOveredBoost
 		elseif	(htype==DIETER and UseDieterPyroclastic~=0) then
 			skill=MH_PYROCLASTIC
-			level = 5
+			if DieterPyroclasticLevel==nil then
+				level = 10
+			else
+				level=DieterPyroclasticLevel
+			end
 			skillopt=UseDieterPyroclastic
 		end
 		return skill,level,skillopt
@@ -2139,7 +2226,7 @@ function GetSightOrAoE(myid)
 		htype=GetV(V_HOMUNTYPE,myid)
 		if	(htype==DIETER and UseDieterLavaSlide==1 and LavaSlideMode~=0) then
 			skill=MH_LAVA_SLIDE
-			level = 5
+			level = 10
 			skillopt=LavaSlideMode
 		elseif (htype==SERA and PoisonMistMode~=0 and UseSeraPoisonMist==1) then
 			skill=MH_POISON_MIST
@@ -2452,35 +2539,103 @@ function DoSkill(skill,level,target,mode,targx,targy)
 			logappend("AAI_SKILLFAIL", "Mode set "..mode.." skill "..skill.." level "..level)
 		end
 	end
+	local t=GetTick();
 	delay=AutoSkillDelay + GetSkillInfo(skill,4,level)+GetSkillInfo(skill,5,level)*CastTimeRatio
-	AutoSkillCastTimeout=delay+GetTick()
+	AutoSkillCastTimeout=delay+t
 	if AutoSkillCooldown[skill]~=nil then
-		AutoSkillCooldown[skill]=GetTick()+GetSkillInfo(skill,9,level)+delay
+		AutoSkillCooldown[skill]=t+GetSkillInfo(skill,9,level)+delay
+	elseif (skill==MH_VOLCANIC_ASH) then --handle the three ash timeouts
+		if (AshTimeout[1] < t) then
+			AshTimeout[1]=t+GetSkillInfo(skill,9,level)+delay
+		elseif (AshTimeout[2] < t) then
+			AshTimeout[2]=t+GetSkillInfo(skill,9,level)+delay
+		else 
+			AshTimeout[3]=t+GetSkillInfo(skill,9,level)+delay
+		end
 	end
 	delay = delay + GetSkillInfo(skill,6,level)
-	AutoSkillTimeout=GetTick()+delay
+	AutoSkillTimeout=t+delay
 	if AutoSkillCooldown[skill]~=nil then
 		TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay.." cooldown: "..AutoSkillCooldown[skill]-GetTick())
 	else
 		TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
 	end
 	if skill==MH_MIDNIGHT_FRENZY then
-		MySpheres = MySpheres - 2
+		MySpheres = math.max(0,MySpheres - 2)
 		ComboSVTimeout=0
 		UpdateTimeoutFile()
 	elseif skill==MH_SILVERVEIN_RUSH then
 		ComboSVTimeout=GetTick()+2000
 		ComboSCTimeout=0
-		MySpheres = MySpheres - 1
+		MySpheres = math.max(0,MySpheres - 1)
 		UpdateTimeoutFile()
 	elseif skill==MH_SONIC_CRAW then
 		ComboSCTimeout=GetTick()+2000
 		ComboSVTimeout=0
+	elseif skill==MH_TINDER_BREAKER then
+		ComboSCTimeout=GetTick()+2000
+		ComboSVTimeout=0
+		MySpheres = math.max(0,MySpheres - 1)
+	elseif skill==MH_CBC then
+		ComboSVTimeout=GetTick()+2000
+		ComboSCTimeout=0
+		MySpheres = math.max(0,MySpheres - 1)
+	elseif skill==MH_EQC then
+		ComboSVTimeout=0
+		ComboSCTimeout=0
+		--No sphere use?
+	else --Combo wasn't used, so kill the timeouts
+		ComboSCTimeout=0
+		ComboSVTimeout=0
 	end
+
 	TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
 	logappend("AAI_SKILLFAIL", "DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
 	return
 end
+
+function modtwroSend()
+	if modtwROSkillGroundID~=0 then
+		logappend("AAI_Lag","Calling skillground function")
+		OldSkillGround(MyID,modtwROSkillGroundLV,modtwROSkillGroundID,modtwROSkillGroundX,modtwROSkillGroundY)
+		LagReductionCD=LagReduction
+	elseif modtwROSkillObjectID~=0 then
+		logappend("AAI_Lag","Calling SkillObject function")
+		OldSkillObject(MyID,modtwROSkillObjectLV,modtwROSkillObjectID,modtwROSkillObjectTarg)
+		LagReductionCD=LagReduction
+	else
+		if modtwRODidMove==0 then
+			if modtwROMoveX~=0 then
+				logappend("AAI_Lag","Calling Move function, didmove=0")
+				OldMove(MyID,modtwROMoveX,modtwROMoveY)
+				LagReductionCD=LagReduction
+				modtwRODidMove=1
+				modtwRODidAttack=0
+			end
+		else
+			modtwRODidMove=0
+		end
+		if modtwRODidAttack==0 then
+			if modtwROAttackTarget~=0 then
+				logappend("AAI_Lag","Calling attack function, didattack=0")
+				OldAttack(MyID,modtwROAttackTarget)
+				LagReductionCD=LagReduction
+				modtwRODidAttack=1
+			end
+		else
+			modtwRODidAttack=0
+		end
+	end
+	modtwROSkillGroundLV,modtwROSkillGroundID,modtwROSkillGroundX,modtwROSkillGroundY,modtwROSkillObjectLV,modtwROSkillObjectID,modtwROSkillObjectTarg,modtwROAttackTarget=0,0,0,0,0,0,0,0
+	modtwROAttackTarget,modtwROMoveX,modtwROMoveY=0,0,0
+end
+
+
+
+
+
+
+
 
 -- I SHOULDNT HAVE TO CODE THIS!
 function modulo(a,b)

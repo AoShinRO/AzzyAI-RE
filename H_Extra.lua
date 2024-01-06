@@ -48,4 +48,4 @@ Dr. Azzy takes no responsibility for your lua programming; I barely take respons
 --LogEnable["AAI_ACTORS"]=1
 
 --Uncomment this line to suppress AAI_ERROR logging. This should only be done as a stop-gap measure; if your AAI_ERROR log is filling up with messages, please report this to the developer. 
---LogEnable["AAI_ERROR"]=1
+--LogEnable["AAI_ERROR"]=0

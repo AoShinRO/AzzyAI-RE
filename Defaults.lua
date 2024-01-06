@@ -89,7 +89,7 @@ EleanorSonicClawLevel		=5
 EleanorSilverveinLevel		=5
 EleanorMidnightLevel		=5
 UseDieterLavaSlide			=1 
-DieterLavaSlideLevel		=5
+DieterLavaSlideLevel		=10
 
 
 --Autobuff options
@@ -114,6 +114,7 @@ UseBayeriGoldenPherze	=0
 UseDieterMagmaFlow	=0
 UseDieterGraniticArmor	=0
 UseDieterPyroclastic	=0
+DieterPyroclasticLevel	=10
 UseEiraOveredBoost		=0
 
 --AutoHeal Options:
@@ -152,7 +153,7 @@ StickyStandby            = 1
 SpawnDelay               = 1000
 AutoSkillDelay		= 400
 ChaseGiveUp              = 6
-AttackGiveUp		=7 
+AttackGiveUp		=10 
 AtkPosbugTimeoutLimit  = 3 
 FollowTryPanic		=3 
 SphereTrackFactor	=3 
@@ -175,6 +176,7 @@ TankMonsterLimit	= 4
 AttackTimeLimit		= 0
 AggressiveRelogTracking = 0
 AggressiveRelogPath = "./AI/USER_AI/"
+ConfigPath = "./AI/USER_AI/"
 AttackLastFullSP = 0
 
 
@@ -209,9 +211,8 @@ FastChangeLimit		=1
 AttackDebuffLimit	=1
 
 
-MagicNumber			=110000000
-MagicNumber2		=2000000
-MagicNumber3		=100000000
+MagicNumber		=42000
+MagicNumber2		=100000
 
 
 
@@ -250,3 +251,5 @@ LogEnable={}
 LogEnable["AAI_ERROR"]=1
 LogEnable["AAI_SKILLFAIL"]=0
 LogEnable["AAI_CLOSEST"]=0
+
+LogEnable["AAI_Lag"]=0
