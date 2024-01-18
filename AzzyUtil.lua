@@ -1707,7 +1707,7 @@ function GetSAtkSkill(myid)
 			if htype==EIRA and UseEiraEraseCutter==1 then
 				skill=MH_ERASER_CUTTER
 				if EiraEraseCutterLevel==nil then
-					level=4
+					level=10
 				else
 					level=EiraEraseCutterLevel
 				end
@@ -1721,7 +1721,7 @@ function GetSAtkSkill(myid)
 			elseif htype==SERA and UseSeraParalyze==1 then
 				skill=MH_NEEDLE_OF_PARALYZE
 				if SeraParalyzeLevel==nil then
-					level=5
+					level=10
 				else
 					level=SeraParalyzeLevel
 				end

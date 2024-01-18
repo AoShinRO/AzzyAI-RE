@@ -5,7 +5,7 @@
 -- Please contact me via the iRO Forums if you wish to modify
 -- so that we can work together to extend and improve this AI.
 -----------------------------
-Version="1.56"
+Version="Custom"
 ErrorCode=""
 ErrorInfo=""
 LastSavedDate=""
