@@ -4,7 +4,7 @@
 -- it is reccomended that you use the seperately available
 -- version, which does not utilize AAI-specific systems. 
 -- Written by Dr. Azzy of iRO Chaos
-AUVersion="1.541"
+AUVersion="Custom"
 -------------------------------
 
 

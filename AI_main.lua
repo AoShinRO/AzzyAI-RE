@@ -4,7 +4,7 @@
 -- This AI is intended for use on official servers only
 -- Permission granted to distribute in unmodified form.
 -- You may expand the AI freely through the M_Extra and H_Extra files
-MainVersion="1.54"
+MainVersion="Custom"
 
 ResCmdList			= List.new()
 -- As of dev 15, global variables are now in Const_.lua
