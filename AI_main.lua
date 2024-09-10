@@ -2624,133 +2624,112 @@ function	OnIDLEWALK_ST ()
 end
 
 function GetIdleWalkDest(MyID)
-	local mx,my=GetV(V_POSITION,MyID)
-	local ox,oy=GetV(V_POSITION,GetV(V_OWNER,MyID))
-	local xoff,yoff=mx-ox,my-oy
-	TraceAI("Idlewalk"..xoff..","..yoff)
-	if UseIdleWalk==1 then --orbit
-		local stepsize = 30
-		if IdleWalkDistance > 4 then
-			stepsize=30
-		else
-			stepsize=45
-		end
-		local temp=math.deg(math.atan2(xoff,yoff))+stepsize/2
-		if temp < 0 then
-			temp=temp+360
-		end
-		local step = math.floor(temp/stepsize) + 1
-		local angle=math.rad(step*stepsize)
-		local destx=math.ceil(math.sin(angle)*IdleWalkDistance)+ox
-		local desty=math.ceil(math.cos(angle)*IdleWalkDistance)+oy
-		TraceAI("Orbit Dest: "..destx..","..desty.." owner: "..ox..","..oy.." mypos: "..mx..","..my)
-		return destx,desty	
-	elseif UseIdleWalk==2 then -- Cross
-		local temp=math.deg(math.atan2(xoff,yoff))+45
-		if temp < 0 then
-			temp=temp+360
-		end
-		step = math.floor(temp/90)
-		TraceAI("Cross step "..step)
-		if step == 0 then -- north goes to south
-			return ox,oy-IdleWalkDistance
-		elseif step == 1 then -- east goes to north
-			return ox,oy+IdleWalkDistance
-		elseif step == 2 then -- south goes to west
-			return ox-IdleWalkDistance,oy
-		else  -- must be west!
-			return ox+IdleWalkDistance,oy
-		end
-	elseif UseIdleWalk==3 then -- Rectangle
-		local temp=math.deg(math.atan2(xoff,yoff))+22.5
-		local tempt=temp
-		if temp < 0 then
-			temp=temp+360
-		end
-		local step = math.floor(temp/45) + 1
-		local destx,desty = ox,oy
-		if step > 0 and step < 4 then
-			destx = ox + IdleWalkDistance
-		elseif step >4 and step < 8 then
-			destx = ox - IdleWalkDistance
-		end
-		if step ==8 or step == 1 or step == 7 then
-			desty= oy + IdleWalkDistance 
-		elseif step > 2 and step < 6 then
-			desty=oy-IdleWalkDistance
-		end
-		TraceAI("Rectangle Dest: "..destx..","..desty.." owner: "..ox..","..oy.." mypos: "..mx..","..my.." temp: "..temp.." "..tempt.." step: "..step)
-		return destx,desty
-	elseif UseIdleWalk==4 then -- Random
-		local step = math.random(0,359)
-		local angle=math.rad(step)
-		local destx=absceil(math.sin(angle)*IdleWalkDistance)+ox
-		local desty=absceil(math.cos(angle)*IdleWalkDistance)+oy
-		TraceAI("Random Dest: "..destx..","..desty.." owner: "..ox..","..oy.." mypos: "..mx..","..my) 
-		return destx,desty	
-	elseif UseIdleWalk==5 or UseIdleWalk==6 then -- Route walk
-		local routelen=1
-		local step = nil
-		local dist = 999
-		local posx,posy
-		if RelativeRoute==1 then
-			posx,posy=xoff,yoff
-			TraceAI("Relative route "..xoff..","..yoff)	
-		else
-			TraceAI("Absolute route "..mx..","..my)	
-			posx,posy=mx,my
-		end
-		
-		for k,v in pairs(MyRoute) do
-			routelen=k
-			if v[1]==posx and v[2]==posy then 
-				step=k
-				dist=0
-				TraceAI("Route Analysis: on route cell "..posx..","..posy.." route step: "..k.." "..v[1]..","..v[2].." current step "..step.."/"..dist)
-			else 
-				local distance=math.sqrt((v[1]-posx)^2+(v[2]-posy))
-				if distance < dist then
-					dist=distance
-					step=k
-				end
-				TraceAI("Route Analysis: "..posx..","..posy.." route step: "..k.." "..v[1]..","..v[2].." distance "..distance.." current step "..step.."/"..dist)
-			end
-		end
-		-- now we're at position 'step'	
-		local nextstep
-		if RouteWalkDirection==1 and step==routelen then
-			if UseIdleWalk==5 then
-				RouteWalkDirection=-1
-				nextstep=step-1
-			else 
-				nextstep=1
-			end
-		elseif RouteWalkDirection==-1 and step==1 then
-			if UseIdleWalk==5 then
-				RouteWalkDirection=1
-				nextstep=2
-			else 
-				nextstep=routelen
-			end
-		else
-			nextstep=step+1*RouteWalkDirection
-		end
-		TraceAI("Route Walk - nextstep "..nextstep.." from "..step)
-		local destx,desty
-		if RelativeRoute==1 then
-			destx,desty = ox+MyRoute[nextstep][1],oy+MyRoute[nextstep][2]
-		else
-			destx,desty = MyRoute[nextstep][1],MyRoute[nextstep][2]
-		end
-		
-		TraceAI("Route Dest: "..destx..","..desty.." owner: "..ox..","..oy.." mypos: "..mx..","..my.." pos: "..posx..","..posy.." routelen: "..routelen.." "..dist.." step: "..step.." nextstep= "..nextstep)
-		return destx,desty
-	else
-		logappend("AAI_ERROR","Invalid UseIdleWalk made it all the way to GetIdleWalkDest()")
-		UseIdleWalk=0
-		return GetV(V_POSITION,MyID)
-	end
+    local mx, my = GetV(V_POSITION, MyID)
+    local ox, oy = GetV(V_POSITION, GetV(V_OWNER, MyID))
+    local xoff, yoff = mx - ox, my - oy
+    local stepsize, angle, step, destx, desty
+
+    TraceAI("Idlewalk: " .. xoff .. "," .. yoff)
+
+    if UseIdleWalk == 1 then -- Orbit
+        stepsize = (IdleWalkDistance > 4) and 30 or 45
+        angle = math.deg(math.atan2(xoff, yoff)) + stepsize / 2
+        angle = (angle < 0) and angle + 360 or angle
+        step = math.floor(angle / stepsize) + 1
+        angle = math.rad(step * stepsize)
+        destx = math.ceil(math.sin(angle) * IdleWalkDistance) + ox
+        desty = math.ceil(math.cos(angle) * IdleWalkDistance) + oy
+        TraceAI("Orbit Dest: " .. destx .. "," .. desty .. " owner: " .. ox .. "," .. oy .. " mypos: " .. mx .. "," .. my)
+    
+    elseif UseIdleWalk == 2 then -- Cross
+        angle = math.deg(math.atan2(xoff, yoff)) + 45
+        angle = (angle < 0) and angle + 360 or angle
+        step = math.floor(angle / 90)
+        TraceAI("Cross step " .. step)
+        
+        if step == 0 then
+            destx, desty = ox, oy - IdleWalkDistance
+        elseif step == 1 then
+            destx, desty = ox, oy + IdleWalkDistance
+        elseif step == 2 then
+            destx, desty = ox - IdleWalkDistance, oy
+        else -- step == 3
+            destx, desty = ox + IdleWalkDistance, oy
+        end
+
+    elseif UseIdleWalk == 3 then -- Rectangle
+        angle = math.deg(math.atan2(xoff, yoff)) + 22.5
+        angle = (angle < 0) and angle + 360 or angle
+        step = math.floor(angle / 45) + 1
+        destx, desty = ox, oy
+        
+        if step > 0 and step < 4 then
+            destx = ox + IdleWalkDistance
+        elseif step > 4 and step < 8 then
+            destx = ox - IdleWalkDistance
+        end
+        
+        if step == 8 or step == 1 or step == 7 then
+            desty = oy + IdleWalkDistance
+        elseif step > 2 and step < 6 then
+            desty = oy - IdleWalkDistance
+        end
+        
+        TraceAI("Rectangle Dest: " .. destx .. "," .. desty .. " owner: " .. ox .. "," .. oy .. " mypos: " .. mx .. "," .. my .. " angle: " .. angle .. " step: " .. step)
+
+    elseif UseIdleWalk == 4 then -- Random
+        angle = math.random(0, 359)
+        angle = math.rad(angle)
+        destx = absceil(math.sin(angle) * IdleWalkDistance) + ox
+        desty = absceil(math.cos(angle) * IdleWalkDistance) + oy
+        TraceAI("Random Dest: " .. destx .. "," .. desty .. " owner: " .. ox .. "," .. oy .. " mypos: " .. mx .. "," .. my)
+    
+    elseif UseIdleWalk == 5 or UseIdleWalk == 6 then -- Route walk
+        local routelen = #MyRoute
+        local step, dist = nil, math.huge
+        local posx, posy = (RelativeRoute == 1) and {xoff, yoff} or {mx, my}
+        
+        TraceAI((RelativeRoute == 1) and "Relative route " or "Absolute route " .. posx .. "," .. posy)
+        
+        for k, v in ipairs(MyRoute) do
+            local distance = math.sqrt((v[1] - posx)^2 + (v[2] - posy)^2)
+            if distance < dist then
+                dist = distance
+                step = k
+            end
+            TraceAI("Route Analysis: step " .. k .. " distance " .. distance .. " current step " .. step .. "/" .. dist)
+        end
+        
+        local nextstep
+        if RouteWalkDirection == 1 and step == routelen then
+            nextstep = (UseIdleWalk == 5) and step - 1 or 1
+            RouteWalkDirection = (UseIdleWalk == 5) and -1 or RouteWalkDirection
+        elseif RouteWalkDirection == -1 and step == 1 then
+            nextstep = (UseIdleWalk == 5) and 2 or routelen
+            RouteWalkDirection = (UseIdleWalk == 5) and 1 or RouteWalkDirection
+        else
+            nextstep = step + RouteWalkDirection
+        end
+        
+        TraceAI("Route Walk - nextstep " .. nextstep .. " from " .. step)
+        
+        if RelativeRoute == 1 then
+            destx, desty = ox + MyRoute[nextstep][1], oy + MyRoute[nextstep][2]
+        else
+            destx, desty = MyRoute[nextstep][1], MyRoute[nextstep][2]
+        end
+        
+        TraceAI("Route Dest: " .. destx .. "," .. desty .. " owner: " .. ox .. "," .. oy .. " mypos: " .. mx .. "," .. my .. " route step: " .. step .. " nextstep=" .. nextstep)
+    
+    else
+        logappend("AAI_ERROR", "Invalid UseIdleWalk value in GetIdleWalkDest()")
+        UseIdleWalk = 0
+        return mx, my
+    end
+    
+    return destx, desty
 end
+
 --######################
 --### DoAutoPushback ###
 --######################
