@@ -41,26 +41,19 @@ function doInit(myid)
 	if GetV(V_SKILLATTACKRANGE,myid,HVAN_CAPRICE) > 1 then -- it was a vani
 		OldHomunType=VANILMIRTH
 	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_ERASER_CUTTER) == 1 then
-			UseEiraEraseCutter=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_XENO_SLASHER) == 1 then -- 
-			UseEiraXenoSlasher=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_STAHL_HORN) == 1 then 
-			UseBayeriStahlHorn=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_HEILIGE_STANGE) == 1 then
-			UseBayeriHailegeStar=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_NEEDLE_OF_PARALYZE) == 1 then
-			UseSeraParalyze=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_POISON_MIST) == 1 then 
-			UseSeraPoisonMist=0
-	end
-	if GetV(V_SKILLATTACKRANGE,myid,MH_LAVA_SLIDE) == 1 then
-			UseDieterLavaSlide=0
+	local skillAttackChecks = {
+		[MH_ERASER_CUTTER] = "UseEiraEraseCutter",
+		[MH_XENO_SLASHER] = "UseEiraXenoSlasher",
+		[MH_STAHL_HORN] = "UseBayeriStahlHorn",
+		[MH_HEILIGE_STANGE] = "UseBayeriHailegeStar",
+		[MH_NEEDLE_OF_PARALYZE] = "UseSeraParalyze",
+		[MH_POISON_MIST] = "UseSeraPoisonMist",
+		[MH_LAVA_SLIDE] = "UseDieterLavaSlide"
+	}
+	for skillID, flag in pairs(skillAttackChecks) do
+		if GetV(V_SKILLATTACKRANGE, myid, skillID) == 1 then
+			_G[flag] = 0
+		end
 	end
 	if LagReduction ==1 then 
 		dofile('./AI/USER_AI/twRO.lua')
@@ -433,96 +426,94 @@ end
 --######## State Process ########
 --###############################
 
-
-function	OnIDLE_ST ()
-	--if ReturnToMoveHold~=0 then 
-	--	MyState=MOVE_CMD_HOLD_ST
-	--	OnMOVE_CMD_HOLD_ST()
-	--	return
-	--end
-	TraceAI ("OnIDLE_ST")
+function OnIDLE_ST ()
+	-- Initial checks and resetting variables
+	TraceAI("OnIDLE_ST")
 	ResetCounters()
-	MySkill					= 0
-	MyDestX					= 0
-	MyDestY					= 0
-	MyEnemy					= 0
-	if (DoIdleTasks()==nil) then
+	MySkill, MyDestX, MyDestY, MyEnemy = 0, 0, 0, 0
+	
+	if DoIdleTasks() == nil then return end
+
+	-- StickyStandby handling
+	if ShouldStandby == 1 and StickyStandby > 0 then
+		MyState = FOLLOW_CMD_ST
 		return
 	end
-	--StickyStandby handling
-	if (ShouldStandby==1 and StickyStandby > 0) then
-		MyState=FOLLOW_CMD_ST
-		return
-	end
-	--Targeting
-	if SuperPassive~=1 then
-		local	object = SelectEnemy(GetFriendTargets())
-		if (object ~= 0) then							-- MYOWNER_ATTACKED_IN
+
+	-- Targeting logic
+	if SuperPassive ~= 1 then
+		local object = SelectEnemy(GetFriendTargets())
+		if object ~= 0 then -- MYOWNER_ATTACKED_IN
 			MyState = CHASE_ST
 			MyEnemy = object
-			TraceAI ("IDLE_ST -> CHASE_ST : MYOWNER_ATTACKED_IN")
-			if (FastChangeCount < FastChangeLimit and FastChange_I2C ==1) then
+			TraceAI("IDLE_ST -> CHASE_ST : MYOWNER_ATTACKED_IN")
+			if FastChangeCount < FastChangeLimit and FastChange_I2C == 1 then
 				OnCHASE_ST()
 			end
-			return 
+			return
 		end
-		if (HPPercent(MyID) > AggroHP and (SPPercent(MyID) > AggroSP or AggroSP==0) and (ShouldStandby == 0 or StickyStandby ==0) ) then
-			aggro=1
-		else
-			aggro=0
-		end
-		object=SelectEnemy(GetEnemyList(MyID,aggro))
-		if object~=0 then
+
+		-- Aggro and attack conditions
+		aggro = (HPPercent(MyID) > AggroHP and (SPPercent(MyID) > AggroSP or AggroSP == 0) and (ShouldStandby == 0 or StickyStandby == 0)) and 1 or 0
+		object = SelectEnemy(GetEnemyList(MyID, aggro))
+
+		if object ~= 0 then
 			MyState = CHASE_ST
 			MyEnemy = object
-			TraceAI ("IDLE_ST -> CHASE_ST : ATTACKED_IN")
-			if (FastChangeCount < FastChangeLimit and FastChange_I2C ==1) then
+			TraceAI("IDLE_ST -> CHASE_ST : ATTACKED_IN")
+			if FastChangeCount < FastChangeLimit and FastChange_I2C == 1 then
 				return OnCHASE_ST()
 			end
-			return	
+			return
 		end
-		if (aggro==1 and TankMonsterCount < TankMonsterLimit) then
-			object = SelectEnemy(GetEnemyList(MyID,-1))
-			if (object ~= 0) then
+
+		-- Tank mode if aggro conditions are met
+		if aggro == 1 and TankMonsterCount < TankMonsterLimit then
+			object = SelectEnemy(GetEnemyList(MyID, -1))
+			if object ~= 0 then
 				MyState = TANKCHASE_ST
 				MyEnemy = object
-				TraceAI ("IDLE_ST -> TANKCHASE_ST")
+				TraceAI("IDLE_ST -> TANKCHASE_ST")
 				return
 			end
 		end
 	end
-	--Following
+
+	-- Following or moving to owner
 	local distance
-	if ReturnToMoveHold ~=0 then
-		distance = GetDistanceAP(MyID,StickyX,StickyY)
+	if ReturnToMoveHold ~= 0 then
+		distance = GetDistanceAP(MyID, StickyX, StickyY)
 	else
 		distance = GetDistanceFromOwner(MyID)
 	end
-	if (UseIdleWalk~=0 and HPPercent(MyID) > AggroHP and SPPercent(MyID) > math.max(AggroSP,IdleWalkSP)) then -- CHECK
-		if ( distance > GetMoveBounds() or distance == -1) then		-- MYOWNER_OUTSIGNT_IN
+
+	-- Idle walk or follow logic
+	if UseIdleWalk ~= 0 and HPPercent(MyID) > AggroHP and SPPercent(MyID) > math.max(AggroSP, IdleWalkSP) then
+		if distance > GetMoveBounds() or distance == -1 then
 			MyState = FOLLOW_ST
-			TraceAI ("IDLE_ST -> FOLLOW_ST")
+			TraceAI("IDLE_ST -> FOLLOW_ST")
 			return
-		else 
+		else
 			TraceAI("IDLE_ST -> IDLEWALK_ST, idle walk mode ="..UseIdleWalk)
-			MyState=IDLEWALK_ST
+			MyState = IDLEWALK_ST
 		end
-	elseif (( distance > DiagonalDist(FollowStayBack+1) and not (ChaseSPPause==1 and GetV(V_SP,MyID) < ChaseSPPauseSP and GetTick() - math.max(LastMovedTime,LastSPTime) > (5000-ChaseSPPauseTime)))or distance == -1) then		-- MYOWNER_OUTSIGNT_IN
+	elseif distance > DiagonalDist(FollowStayBack + 1) and not (ChaseSPPause == 1 and GetV(V_SP, MyID) < ChaseSPPauseSP and GetTick() - math.max(LastMovedTime, LastSPTime) > (5000 - ChaseSPPauseTime)) or distance == -1 then
 		MyState = FOLLOW_ST
-		TraceAI ("IDLE_ST -> FOLLOW_ST")
+		TraceAI("IDLE_ST -> FOLLOW_ST")
 		return OnFOLLOW_ST()
-	end	
-	if UseAutoHeal==3 then
-		if DoHealingTasks(MyID) == 1 then 
-			return
-		end
 	end
+
+	-- Healing and buffs
+	if UseAutoHeal == 3 and DoHealingTasks(MyID) == 1 then return end
 	DoAutoBuffs(-2)
-	if UseIdleWalk ~=0 and HPPercent(MyID) > AggroHP and SPPercent(MyID) > math.max(AggroSP,IdleWalkSP) then
+
+	-- Reevaluate Idle Walk
+	if UseIdleWalk ~= 0 and HPPercent(MyID) > AggroHP and SPPercent(MyID) > math.max(AggroSP, IdleWalkSP) then
 		TraceAI("IDLE_ST -> IDLEWALK_ST, idle walk mode ="..UseIdleWalk)
-		MyState=IDLEWALK_ST
+		MyState = IDLEWALK_ST
 	end
 end
+
 
 function	OnFOLLOW_ST ()
 
@@ -918,26 +909,29 @@ function	OnCHASE_ST ()
 end
 
 
+function ResetStateToIdle(reason)
+	MyState = IDLE_ST
+	MyEnemy = 0
+	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
+	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+	MySkillUseCount = 0
+	TraceAI("ATTACK_ST -> IDLE_ST -- " .. reason)
+end
 
+function ResetStateToFollow(reason)
+	MyState = FOLLOW_ST
+	Unreachable[MyEnemy] = 1
+	ResetStateToIdle(reason)
+end
 
 function OnATTACK_ST ()
 	TraceAI ("OnATTACK_ST MyEnemy: "..MyEnemy.." MyPos "..formatpos(GetV(V_POSITION,MyID)).." ("..GetV(V_MOTION,MyID)..") enemypos "..formatpos(GetV(V_POSITION,MyEnemy)).." ("..GetV(V_MOTION,MyEnemy)..") MyTarget: "..GetV(V_TARGET,MyID))	
 	if (true == IsOutOfSight(MyID,MyEnemy)) then -- first thing's first, if enemy is gone drop it. 
-		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-		MySkillUseCount= 0
-		TraceAI ("ATTACK_ST -> IDLE_ST -- target gone")
+		ResetStateToIdle("target gone")
 		return OnIDLE_ST()
 	end
 	if (MOTION_DEAD == GetV(V_MOTION,MyEnemy)) then   -- Enemy dead? Okay we're done here - drop it. 
-		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-		MySkillUseCount= 0
-		TraceAI ("ATTACK_ST -> IDLE_ST  Enemy dead")
+		ResetStateToIdle("Enemy dead")
 		return OnIDLE_ST()
 	end
 	local mytarg=GetV(V_TARGET,MyID)
@@ -954,13 +948,8 @@ function OnATTACK_ST ()
 				Move(MyID,tx,ty)
 				TraceAI("ATTACK_ST: We've been attacking for 3 cycles, but we still haven't attacked! Something is wrong - Moving to adjust opposite")
 			elseif AttackGiveUpCount > AttackGiveUp and MyEnemies[AttackGiveUp]==MyEnemy and MyStates[AttackGiveUp]==ATTACK_ST then
-				MyState = IDLE_ST
 				Unreachable[MyEnemy]=1
-				MyEnemy = 0
-				EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-				EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-				MySkillUseCount= 0
-				TraceAI("ATTACK_ST -> IDLE_ST - We've been attacking for 5 cycles, tried moving around, and still haven't attacked it. Marking unreachable")
+				ResetStateToIdle("We've been attacking for 5 cycles, tried moving around, and still haven't attacked it. Marking unreachable")
 				return OnIDLE_ST()
 			end
 		end
@@ -982,13 +971,7 @@ function OnATTACK_ST ()
 		end
 	end
 	if (AttackTimeout < GetTick() and AttackTimeLimit > 0) then -- Attack time limit reached.
-		MyState = FOLLOW_ST
-		Unreachable[MyEnemy]=1
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-		MySkillUseCount= 0
-		TraceAI ("ATTACK_ST -> FOLLOW_ST -- attack timeout reached, so we're probably posbugged. Dropping target and returning to owner in the hope that that sorts it out")
+		ResetStateToFollow("attack timeout reached, so we're probably posbugged. Dropping target and returning to owner in the hope that that sorts it out")
 		return OnFOLLOW_ST()
 	end
 	
@@ -1199,7 +1182,7 @@ function OnATTACK_ST ()
 				SkillTarget=target
 			end
 			TraceAI("Skill Attack: "..MySkill.." (brandish) target: "..SkillTarget.." enemy: "..MyEnemy)
-		elseif ((MySkill==MH_XENO_SLASHER or MySkill==MH_LAVA_SLIDE or MySkill==MA_SHOWER or MySkill==MH_POISON_MIST) and AoEMaximizeTargets==1) or  (MySkill==MH_VOLCANIC_ASH and AshMaximizeTargets==1) then
+		elseif ((MySkill==MH_XENO_SLASHER or MySkill==MH_LAVA_SLIDE or MySkill==MA_SHOWER or MySkill==MH_POISON_MIST) and AoEMaximizeTargets==1) or (MySkill==MH_VOLCANIC_ASH and AshMaximizeTargets==1) then
 			targx,targy=GetBestAoECoord(MyID,MySkill,MySkillLevel)
 			if targx~=-1 then
 				SkillTargetX,SkillTargetY=targx,targy
@@ -2045,98 +2028,73 @@ end
 -- enemys[n][4] = casttact
 
 function SelectEnemy(enemys,curenemy)
-	local min_priority=-1
+	local min_priority = -1
 	local priority
-	local min_dis = 100
-	local dis
-	--local min_aggro = -1
-	--local aggro = 0
-	local result=0
-	local max_reachable=1
-	--local min_mobcount=1
-	--local mobcount=0
-	if curenemy~=nil then -- it's an opportunistic attack
-		local dist = GetDistanceA(MyID,curenemy)
-		local aggrotemp=0
-		if IsFriendOrSelf(GetV(V_TARGET,curenemy)) ==1 then
-			aggrotemp=1
+	local min_distance = 100
+	local distance
+	local result = 0
+	local max_reachable = 1
+
+	if current_enemy ~= nil then -- Opportunistic attack
+		local dist = GetDistanceA(MyID, current_enemy)
+		local aggro_temp = 0
+		if IsFriendOrSelf(GetV(V_TARGET, current_enemy)) == 1 then
+			aggro_temp = 1
 		end
-		min_priority=convpriority(GetTact(TACT_BASIC,curenemy),aggrotemp)
+		min_priority = convpriority(GetTact(TACT_BASIC, current_enemy), aggro_temp)
 		if dist < 3 then 
 			return 0
 		else
-			min_dis = dist - 3
+			min_distance = dist - 3
 		end
 	end
-	for k,v in pairs(enemys) do
-		local basepriority = v[3] -- basic tact
-		if v[2]>0 and (v[1]==3 or v[4]>=CAST_REACT) then
-			aggro=1
-		else
-			aggro=0
-		end
-		priority=convpriority(basepriority,aggro)
-		--TraceAI(k.." "..basepriority.." "..priority)
-		--elseif ((priority==2 or priority==5) and (v[1]==3 or v[4]>=CAST_REACT)) then
-		--	aggro=-1
-		--elseif then	
-		--aggro = 1
-		--else
-		--	aggro=0
-		--end
-		dis = GetDistanceA (MyID,k)
-		unreachable=Unreachable[k]
-		if unreachable == nil then
-			unreachable=0
-		end
+
+	for id, enemy in pairs(enemys) do
+		local base_priority = enemy[3] -- Tact
+		local aggro = (enemy[2] > 0 and (enemy[1] == 3 or enemy[4] >= CAST_REACT)) and 1 or 0
+		priority = convpriority(base_priority, aggro)
 		
-		--TraceAI(priority.."/"..min_priority.." "..dis.."/"..min_dis.." "..unreachable.."/"..max_reachable)
-		if (unreachable <= max_reachable) then
-			--if (aggro >= min_aggro) then
-				if (priority > min_priority or (priority==min_priority and dis < min_dis)) then
-					--if (dis < min_dis) then
-						result = k
-						min_dis = dis
-						min_priority=priority
-						--min_aggro=aggro
-						max_reachable=unreachable
-					--end
-				end
-			--end
+		distance = GetDistanceA(MyID, id)
+		local unreachable = Unreachable[id] or 0
+		
+		if unreachable <= max_reachable then
+			if (priority > min_priority or (priority == min_priority and distance < min_distance)) then
+				result = id
+				min_distance = distance
+				min_priority = priority
+				max_reachable = unreachable
+			end
 		end
 	end
-	--TraceAI("SelectEnemy returning target "..result)
 	return result
 end
-function convpriority(base,agr)
-	local priority
-	if base > 9 and base < 13 then --Snipe modes are to be treated as attack
-		base = base-8
+
+function convpriority(base, aggro)
+	if base > 9 and base < 13 then -- Treat Snipe modes as attack
+		base = base - 8
 	end
 	if base == 13 then
-		if agr == 1 then
-			base = 7
-		else 
-			base = 2
-		end
+		base = (aggro == 1) and 7 or 2
+	elseif base == 14 then
+		base = 1
 	end
-	if base == 14 then
-		base= 1
-	end
-	if base>6 and agr==1 then
-		priority=base
-	elseif base==4 or base==3 or base==15 then
-		priority=base+1
-		if agr==0 then 
-			priority=priority-2
+	
+	local priority = base
+	if base > 6 and aggro == 1 then
+		priority = base
+	elseif base == 4 or base == 3 or base == 15 then
+		priority = base + 1
+		if aggro == 0 then 
+			priority = priority - 2
 		end
-	elseif (priority==5 and aggro==1) then 
+	elseif priority == 5 and aggro == 1 then 
 		return 2
-	elseif base==2 then
+	elseif base == 2 then
 		return 1
 	else
 		return 0
 	end
+	
 	return priority
 end
 
@@ -2148,37 +2106,44 @@ end
 function DoIdleTasks()
 	local cmd = List.popleft(ResCmdList)
 	if (cmd ~= nil) then		
-		ProcessCommand (cmd)	-- ¿¹¾à ¸í·É¾î Ã³¸® 
+		ProcessCommand(cmd)	-- Process command from the list
 		return 
 	end
-	if OnIdleTasks()==1 then
+
+	if OnIdleTasks() == 1 then
 		return
 	end
-	if UseAutoHeal==2 then
-		if DoHealingTasks(MyID)==1 then
+
+	if UseAutoHeal == 2 then
+		if DoHealingTasks(MyID) == 1 then
 			return
 		end
 	end
-	if DoAutoBuffs(1) ~=1 then
+
+	-- Ensure auto buffs are applied
+	if DoAutoBuffs(1) ~= 1 then
 		return
 	end
-	if (UseSacrificeOwner == 1 and SacrificeTimeout ~=-1) then
-		if (GetTick() > SacrificeTimeout) then
-			local skill,level= GetSacrificeSkill(MyID)
-			if (skill <= 0) then
+
+	if UseSacrificeOwner == 1 and SacrificeTimeout ~= -1 then
+		if GetTick() > SacrificeTimeout then
+			local skill, level = GetSacrificeSkill(MyID)
+			if skill <= 0 then
 				SacrificeTimeout = -1
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				DoSkill(skill,level,GetV(V_OWNER,MyID),7)
-				SacrificeTimeout = GetTick() + GetSkillInfo(skill,8,level) -- this will recast it before it drops, because the countdown starts at the start of the cast time, but duration counts down from end of cast time.
+			elseif GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				DoSkill(skill, level, GetV(V_OWNER, MyID), 7)
+				SacrificeTimeout = GetTick() + GetSkillInfo(skill, 8, level)
 				return
 			end
 		end
 	end
-	if (GetV(V_MOTION,GetV(V_OWNER,MyID))==MOTION_SIT and MyState~=REST_ST and DoNotUseRest~=1) then
-		MyState=REST_ST
+
+	if GetV(V_MOTION, GetV(V_OWNER, MyID)) == MOTION_SIT and MyState ~= REST_ST and DoNotUseRest ~= 1 then
+		MyState = REST_ST
 		TraceAI("DoIdleTasks - Owner sitting, MyState -> REST_ST")
 		return
 	end
+
 	return 1
 end
 
@@ -2186,319 +2151,159 @@ function DoAutoBuffs(buffmode)
 	if GetTick() < AutoSkillTimeout then
 		return 1
 	end
-	if buffmode==2 then -- Berserk mode only buffs
-		if BerserkMode~=1 then
-			return 1
-		end
+
+	if buffmode == 2 and BerserkMode ~= 1 then
+		return 1
 	end
-	TraceAI("DoAutoBuffs"..buffmode)
-	if (UseProvokeOwner == buffmode and ProvokeOwnerTimeout ~=-1) then
-		if (GetTick() > ProvokeOwnerTimeout) then
-			local skill,level= GetProvokeSkill(MyID)
-			if (skill <= 0) then
-				ProvokeOwnerTimeout = -1
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["ProvokeOwner"]=GetSkillInfo(skill,3,level)
-				if MyASAPBuffs[3]==skill and buffmode==3 then
-					ProvokeOwnerTimeout = GetTick()+20000 --We're stuck in an ASAP loop!
-					logappend("AAI_ERROR","ASAP buff attempt canceled, we were just trying to do this and it didnt work, delaying 20 seconds "..FormatSkill(skill,level))
-				else
-					MyPState = MyState
-					MyState = PROVOKE_ST
-					MyPEnemy = GetV(V_OWNER,MyID)
-					MyPSkill = skill
-					MyPSkillLevel = level
-					MyPMode = 7
-					return OnPROVOKE_ST()
-				end
-			end
+
+	TraceAI("DoAutoBuffs " .. buffmode)
+
+	local function tryApplyBuff(skill, level, mode, timeout, buffKey)
+		if skill <= 0 or GetSkillInfo(skill, 3, level) > GetV(V_SP, MyID) then
+			timeout = -1
+			return
 		end
-	end
-	if OffensiveOwnerTimeout ~=-1 then
-		TraceAI("offensive owner ~= -1")
-		if (GetTick() > OffensiveOwnerTimeout) then
-			local skill,level,opt = GetOffensiveOwnerSkill(MyID)
-			TraceAI("timeout ok "..opt.." "..FormatSkill(skill,level).." "..buffmode)
-			if (skill <= 0) then
-				OffensiveOwnerTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["OffensiveOwner"]=GetSkillInfo(skill,3,level)
-				if MyASAPBuffs[3]==skill and buffmode==3 then
-					OffensiveOwnerTimeout = GetTick()+20000 --We're stuck in an ASAP loop!
-					logappend("AAI_ERROR","ASAP buff attempt canceled, we were just trying to do this and it didnt work, delaying 20 seconds "..FormatSkill(skill,level))
-				else
-					MyPState = MyState
-					MyState = PROVOKE_ST
-					MyPEnemy = GetV(V_OWNER,MyID)
-					MyPSkill = skill
-					MyPSkillLevel = level
-					MyPMode = 11
-					return OnPROVOKE_ST()
-				end
-			end
-		end
-	end
-	if DefensiveOwnerTimeout ~=-1 then
-		TraceAI("defensive owner ~= -1")
-		if (GetTick() > DefensiveOwnerTimeout)  and (DefensiveBuffOwnerMobbed==0 or (DefensiveBuffOwnerMobbed <= GetAggroCount(GetV(V_OWNER,MyID)) and HPPercent(GetV(V_OWNER,MyID)) < DefensiveBuffOwnerHP)) then
-			local skill,level,opt = GetDefensiveOwnerSkill(MyID)
-			TraceAI("timeout ok "..opt.." "..FormatSkill(skill,level).." "..buffmode)
-			if (skill <= 0) then
-				DefensiveOwnerTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["DefensiveOwner"]=GetSkillInfo(skill,3,level)
-				if MyASAPBuffs[3]==skill and buffmode==3 then
-					DefensiveOwnerTimeout = GetTick()+20000 --We're stuck in an ASAP loop!
-					logappend("AAI_ERROR","ASAP buff attempt canceled, we were just trying to do this and it didnt work, delaying 20 seconds "..FormatSkill(skill,level))
-				else
-					MyPState = MyState
-					MyState = PROVOKE_ST
-					MyPEnemy = GetV(V_OWNER,MyID)
-					MyPSkill = skill
-					MyPSkillLevel = level
-					MyPMode = 12
-					return OnPROVOKE_ST()
-				end
-			end
-		end
-	end
-	if OtherOwnerTimeout ~=-1 then
-		TraceAI("other owner ~= -1 "..GetTick().." "..OtherOwnerTimeout)
-		if (GetTick() > OtherOwnerTimeout) then
-			local skill,level,opt = GetOtherOwnerSkill(MyID)
-			TraceAI("timeout ok "..opt.." "..FormatSkill(skill,level).." "..buffmode)
-			if (skill <= 0) then
-				OtherOwnerTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["OtherOwner"]=GetSkillInfo(skill,3,level)
-				if MyASAPBuffs[3]==skill and buffmode==3 then
-					OtherOwnerTimeout = GetTick()+20000 --We're stuck in an ASAP loop!
-					logappend("AAI_ERROR","ASAP buff attempt canceled, we were just trying to do this and it didnt work, delaying 20 seconds "..FormatSkill(skill,level))
-				else
-					MyPState = MyState
-					MyState = PROVOKE_ST
-					MyPEnemy = GetV(V_OWNER,MyID)
-					MyPSkill = skill
-					MyPSkillLevel = level
-					MyPMode = 13
-					return OnPROVOKE_ST()
-				end
-			end
-		end
-	end
-	
-	if (UseProvokeSelf == buffmode and ProvokeSelfTimeout ~=-1) then
-		if (GetTick() > ProvokeSelfTimeout) then
-			local skill,level = GetProvokeSkill(MyID)
-			if (skill <= 0) then
-				ProvokeSelfTimeout = -1
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				--MyState=PROVOKE_ST
-				--OnPROVOKE_ST()
-				--return
-				DoSkill(skill,level,MyID)
-				ProvokeSelfTimeout = GetTick()+GetSkillInfo(skill,8,level)
-				return
-			end
-		end
-	end
-	if (UseOffensiveBuff == buffmode and QuickenTimeout ~=-1) then
-		if (GetTick() > QuickenTimeout) then
-			local skill,level = GetQuickenSkill(MyID)
-			if (skill<=0) then
-				QuickenTimeout = -1
-			elseif level==0 then
-				 -- skill in cooldown
-			else
-				if (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-					DoSkill(skill,level,MyID,2)
-					QuickenTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-					UpdateTimeoutFile()
-					return
-				end
-			end
-		end
-	end
-	
-	if (UseDefensiveBuff == buffmode and GuardTimeout ~=-1) then
-		if (GetTick() > GuardTimeout) then
-			local skill,level = GetGuardSkill(MyID)
-			if (skill <= 0) then
-				GuardTimeout = -1
-			elseif level==0 then
-				-- skill in cooldown
-			elseif skill==HAMI_BULWARK and UseSmartBulwark ==1  then
-				local spreq=MyBuffSPCost+GetSkillInfo(skill,3,level)
-				if UseOffensiveBuff ~=0 and QuickenTimeout~=-1 then
-					spreq=spreq+120
-				end
-				if spreq <= GetV(V_SP,MyID) then
-					DoSkill(skill,level,MyID,1)
-					GuardTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-					UpdateTimeoutFile()
-				end
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				DoSkill(skill,level,MyID,1)
-				GuardTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-				UpdateTimeoutFile()
-				return
-			end
-		end
-	end
-	if SOffensiveTimeout ~=-1 then
-		if (GetTick() > SOffensiveTimeout) then
-			local skill,level,opt = GetSOffensiveSkill(MyID)
-			if (skill <= 0) then
-				SOffensiveTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["SOffensive"]=GetSkillInfo(skill,3,level)
-				DoSkill(skill,level,MyID,4)
-				SOffensiveTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)		
-				--logappend("AAI_SKILL",skill.."|"..level.."|"..GetSkillInfo(skill,8,level).."|"..SOffensiveTimeout)
-				UpdateTimeoutFile()
-				return
-			end
-		end
-	end
-	if SDefensiveTimeout ~=-1 then
-		TraceAI("sdefensive ~= -1")
-		if (GetTick() > SDefensiveTimeout) then
-			local skill,level,opt = GetSDefensiveSkill(MyID)
-			TraceAI("timeout ok "..opt.." "..FormatSkill(skill,level).." "..buffmode)
-			if (skill <= 0) then
-				SDefensiveTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["SDefensive"]=GetSkillInfo(skill,3,level)
-				DoSkill(skill,level,MyID,5)
-				SDefensiveTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-				UpdateTimeoutFile()
-				return
-			end
-		end
-	end
-	if SOwnerBuffTimeout ~=-1 then
-		if (GetTick() > SOwnerBuffTimeout) then
-			local skill,level,opt = GetSOwnerBuffSkill(MyID)
-			if (skill <= 0) then
-				SOwnerBuffTimeout = -1
-			elseif level==0 or opt ~=buffmode then
-				-- do nothing, skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["SOwnerBuff"]=GetSkillInfo(skill,3,level)
-				DoSkill(skill,level,MyID,6)
-				SOwnerBuffTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-				UpdateTimeoutFile()
-				return
-			end
-		end
-	end
-	if UseBayeriSteinWand == buffmode and SteinWandTimeout~=-1 then
-		if GetTick() > SteinWandTimeout  then
-			if GetV(V_HOMUNTYPE,MyID)~=BAYERI then
-				SteinWandTimeout=-1
-			else
-				if (GetAggroCount(MyID) >= UseSteinWandSelfMob and UseSteinWandSelfMob~=0) or (GetAggroCount(GetV(V_OWNER,MyID)) >= UseSteinWandOwnerMob and UseSteinWandOwnerMob~=0) then
-					DoSkill(MH_STEINWAND,BayeriSteinWandLevel,MyID,10)
-					SteinWandTimeout=AutoSkillCastTimeout+GetSkillInfo(MH_STEINWAND,8,BayeriSteinWandLevel)
-					return
-				end
-			end
-		end
-	end
-	if (UseAutoMag == buffmode and MagTimeout ~=-1) then
-		if (GetTick() > MagTimeout) then
-			if (GetV(V_MERTYPE,MyID)~=4) then
-				MagTimeout = -1
-			elseif (40 <= GetV(V_SP,MyID) and level ~=0) then
-				DoSkill(MER_MAGNIFICAT,1,MyID,3)
-				MagTimeout = GetTick() + 34000
-				UpdateTimeoutFile()
-				return
-			end
-		end
-	end
-	if SightTimeout ~=-1 then
-		TraceAI("tick:"..GetTick().."SightTimeout"..SightTimeout)
-		if (GetTick() > SightTimeout) then
-			local skill,level,opt = GetSightOrAoE(MyID)
-			if (skill <= 0) then
-				SightTimeout = -1
-			elseif level==0 or opt~=buffmode then
-				-- skill in cooldown
-			elseif (GetSkillInfo(skill,3,level) <= GetV(V_SP,MyID)) then
-				MyBuffSPCosts["SightOrAoE"]=GetSkillInfo(skill,3,level)
-				if IsHomun(MyID)==1 then
-					if MyASAPBuffs[3]==skill and buffmode==3 then
-						SightTimeout = GetTick()+20000 --We're stuck in an ASAP loop!
-						logappend("AAI_ERROR","ASAP buff attempt canceled, we were just trying to do this and it didnt work, delaying 20 seconds "..FormatSkill(skill,level))
-					else
-						MyPState = MyState
-						MyState = PROVOKE_ST
-						MyPEnemy = GetV(V_OWNER,MyID)
-						MyPSkill = skill
-						MyPSkillLevel = level
-						MyPMode = 7
-						TraceAI("Using AoE skill as buff"..MyPState.." "..MyState.." "..MyPEnemy.." "..MyPSkill.." "..MyPSkillLevel)
-					return OnPROVOKE_ST()
-				end				
-				else
-					DoSkill(skill,level,MyID,7)
-					SightTimeout = AutoSkillCastTimeout + GetSkillInfo(skill,8,level)
-					return
-				end
-			end
-		end
-	end
-	if PainkillerFriends ~=0 then
-		local skill,level,opt = GetDefensiveOwnerSkill(MyID)
-		opt = PainkillerFriends
-		if skill <=0 then 
-			--logappend("AAI_PKF","Painkiller friends disabled, don't have skill")
-			PainkillerFriends=0
-		elseif level==0 or opt~=buffmode then
-			--logappend("AAI_PKF","not time to use it")
-			-- skill in cooldown
-		elseif (GetSkillInfo(skill,3,level) > GetV(V_SP,MyID)) then
-			
-			--logappend("AAI_PKF","No SP")
-			-- no SP
+
+		MyBuffSPCosts[buffKey] = GetSkillInfo(skill, 3, level)
+		if MyASAPBuffs[3] == skill and buffmode == 3 then
+			timeout = GetTick() + 20000
+			logappend("AAI_ERROR", "ASAP buff attempt canceled, delaying 20 seconds " .. FormatSkill(skill, level))
 		else
-			TraceAI("Painkiller Friends check")
-			
-			--logappend("AAI_PKF","Painkiller friends check")
-			for k,v in pairs(Players) do
-				--logappend("AAI_PKF","Painkiller friend "..k)
-				if MyFriends[k]==FRIEND or MyFriends[k]==PKFRIEND then
-					--logappend("AAI_PKF","Painkiller friend "..k.."not a friend")
-					if PKFriendsTimeout[k]~=nil then
-						if PKFriendsTimeout[k] < GetTick() then
-							MyPState = MyState
-							MyState = PROVOKE_ST
-							MyPEnemy = k
-							MyPSkill = skill
-							MyPSkillLevel = level
-							MyPMode = k
-							return OnPROVOKE_ST()
-						end
-					else 
-						MyPState = MyState
-						MyState = PROVOKE_ST
-						MyPEnemy = k
-						MyPSkill = skill
-						MyPSkillLevel = level
-						MyPMode = k
-						return OnPROVOKE_ST()
-					end
+			MyPState = MyState
+			MyState = PROVOKE_ST
+			MyPEnemy = GetV(V_OWNER, MyID)
+			MyPSkill = skill
+			MyPSkillLevel = level
+			MyPMode = mode
+			return OnPROVOKE_ST()
+		end
+	end
+
+	if UseProvokeOwner == buffmode and ProvokeOwnerTimeout ~= -1 then
+		if GetTick() > ProvokeOwnerTimeout then
+			local skill, level = GetProvokeSkill(MyID)
+			tryApplyBuff(skill, level, 7, ProvokeOwnerTimeout, "ProvokeOwner")
+		end
+	end
+
+	if OffensiveOwnerTimeout ~= -1 then
+		if GetTick() > OffensiveOwnerTimeout then
+			local skill, level, opt = GetOffensiveOwnerSkill(MyID)
+			tryApplyBuff(skill, level, 11, OffensiveOwnerTimeout, "OffensiveOwner")
+		end
+	end
+
+	if DefensiveOwnerTimeout ~= -1 then
+		if GetTick() > DefensiveOwnerTimeout and (DefensiveBuffOwnerMobbed == 0 or 
+			(DefensiveBuffOwnerMobbed <= GetAggroCount(GetV(V_OWNER, MyID)) and HPPercent(GetV(V_OWNER, MyID)) < DefensiveBuffOwnerHP)) then
+			local skill, level, opt = GetDefensiveOwnerSkill(MyID)
+			tryApplyBuff(skill, level, 12, DefensiveOwnerTimeout, "DefensiveOwner")
+		end
+	end
+
+	if OtherOwnerTimeout ~= -1 then
+		if GetTick() > OtherOwnerTimeout then
+			local skill, level, opt = GetOtherOwnerSkill(MyID)
+			tryApplyBuff(skill, level, 13, OtherOwnerTimeout, "OtherOwner")
+		end
+	end
+
+	if UseProvokeSelf == buffmode and ProvokeSelfTimeout ~= -1 then
+		if GetTick() > ProvokeSelfTimeout then
+			local skill, level = GetProvokeSkill(MyID)
+			if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				DoSkill(skill, level, MyID)
+				ProvokeSelfTimeout = GetTick() + GetSkillInfo(skill, 8, level)
+				return
+			end
+		end
+	end
+
+	if UseOffensiveBuff == buffmode and QuickenTimeout ~= -1 then
+		if GetTick() > QuickenTimeout then
+			local skill, level = GetQuickenSkill(MyID)
+			if skill > 0 and level ~= 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				DoSkill(skill, level, MyID, 2)
+				QuickenTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
+				return
+			end
+		end
+	end
+
+	if UseDefensiveBuff == buffmode and GuardTimeout ~= -1 then
+		if GetTick() > GuardTimeout then
+			local skill, level = GetGuardSkill(MyID)
+			if skill > 0 and (GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID)) then
+				DoSkill(skill, level, MyID, 1)
+				GuardTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
+				return
+			end
+		end
+	end
+
+	if SOffensiveTimeout ~= -1 then
+		if GetTick() > SOffensiveTimeout then
+			local skill, level, opt = GetSOffensiveSkill(MyID)
+			if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				MyBuffSPCosts["SOffensive"] = GetSkillInfo(skill, 3, level)
+				DoSkill(skill, level, MyID, 4)
+				SOffensiveTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
+				return
+			end
+		end
+	end
+
+	if SDefensiveTimeout ~= -1 then
+		if GetTick() > SDefensiveTimeout then
+			local skill, level, opt = GetSDefensiveSkill(MyID)
+			if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				MyBuffSPCosts["SDefensive"] = GetSkillInfo(skill, 3, level)
+				DoSkill(skill, level, MyID, 5)
+				SDefensiveTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
+				return
+			end
+		end
+	end
+
+	if SOwnerBuffTimeout ~= -1 then
+		if GetTick() > SOwnerBuffTimeout then
+			local skill, level, opt = GetSOwnerBuffSkill(MyID)
+			if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				MyBuffSPCosts["SOwnerBuff"] = GetSkillInfo(skill, 3, level)
+				DoSkill(skill, level, MyID, 6)
+				SOwnerBuffTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
+				return
+			end
+		end
+	end
+
+	if UseBayeriSteinWand == buffmode and SteinWandTimeout ~= -1 then
+		if GetTick() > SteinWandTimeout then
+			if GetV(V_HOMUNTYPE, MyID) == BAYERI and 
+				(GetAggroCount(MyID) >= UseSteinWandSelfMob and UseSteinWandSelfMob ~= 0) or 
+				(GetAggroCount(GetV(V_OWNER, MyID)) >= UseSteinWandOwnerMob and UseSteinWandOwnerMob ~= 0) then
+				DoSkill(MH_STEINWAND, BayeriSteinWandLevel, MyID, 10)
+				SteinWandTimeout = AutoSkillCastTimeout + GetSkillInfo(MH_STEINWAND, 8, BayeriSteinWandLevel)
+				return
+			end
+		end
+	end
+
+	if UseAutoMag == buffmode and MagTimeout ~= -1 then
+		if GetTick() > MagTimeout then
+			if GetV(V_MERTYPE, MyID) == 4 and GetV(V_LEVEL, MyID) >= 4 and
+				(GetAggroCount(MyID) >= UseMagSelfMob and UseMagSelfMob ~= 0) or 
+				(GetAggroCount(GetV(V_OWNER, MyID)) >= UseMagOwnerMob and UseMagOwnerMob ~= 0) then
+				local skill, level = GetMagSkill(MyID)
+				if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+					DoSkill(skill, level, MyID, 9)
+					MagTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+					return
 				end
 			end
 		end
