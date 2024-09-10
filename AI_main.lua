@@ -2308,6 +2308,78 @@ function DoAutoBuffs(buffmode)
 			end
 		end
 	end
+
+	-- Handling SightTimeout
+	if SightTimeout ~= -1 then
+		TraceAI("tick:" .. GetTick() .. " SightTimeout " .. SightTimeout)
+		if GetTick() > SightTimeout then
+			local skill, level, opt = GetSightOrAoE(MyID)
+			if skill <= 0 then
+				SightTimeout = -1
+			elseif level == 0 or opt ~= buffmode then
+				-- skill in cooldown
+			elseif GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+				MyBuffSPCosts["SightOrAoE"] = GetSkillInfo(skill, 3, level)
+				if IsHomun(MyID) == 1 then
+					if MyASAPBuffs[3] == skill and buffmode == 3 then
+						SightTimeout = GetTick() + 20000
+						logappend("AAI_ERROR", "ASAP buff attempt canceled, delaying 20 seconds " .. FormatSkill(skill, level))
+					else
+						MyPState = MyState
+						MyState = PROVOKE_ST
+						MyPEnemy = GetV(V_OWNER, MyID)
+						MyPSkill = skill
+						MyPSkillLevel = level
+						MyPMode = 7
+						TraceAI("Using AoE skill as buff" .. MyPState .. " " .. MyState .. " " .. MyPEnemy .. " " .. MyPSkill .. " " .. MyPSkillLevel)
+						return OnPROVOKE_ST()
+					end
+				else
+					DoSkill(skill, level, MyID, 7)
+					SightTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+					return
+				end
+			end
+		end
+	end
+
+	-- Handling PainkillerFriends
+	if PainkillerFriends ~= 0 then
+		local skill, level, opt = GetDefensiveOwnerSkill(MyID)
+		opt = PainkillerFriends
+		if skill <= 0 then
+			PainkillerFriends = 0
+		elseif level == 0 or opt ~= buffmode then
+			-- skill in cooldown
+		elseif GetSkillInfo(skill, 3, level) > GetV(V_SP, MyID) then
+			-- no SP
+		else
+			TraceAI("Painkiller Friends check")
+			for k, v in pairs(Players) do
+				if MyFriends[k] == FRIEND or MyFriends[k] == PKFRIEND then
+					if PKFriendsTimeout[k] ~= nil then
+						if PKFriendsTimeout[k] < GetTick() then
+							MyPState = MyState
+							MyState = PROVOKE_ST
+							MyPEnemy = k
+							MyPSkill = skill
+							MyPSkillLevel = level
+							MyPMode = k
+							return OnPROVOKE_ST()
+						end
+					else
+						MyPState = MyState
+						MyState = PROVOKE_ST
+						MyPEnemy = k
+						MyPSkill = skill
+						MyPSkillLevel = level
+						MyPMode = k
+						return OnPROVOKE_ST()
+					end
+				end
+			end
+		end
+	end
 	return OnAutoBuffs(buffmode)
 end
 
