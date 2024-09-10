@@ -2027,7 +2027,7 @@ end
 -- enemys[n][3] = tact
 -- enemys[n][4] = casttact
 
-function SelectEnemy(enemys,curenemy)
+function SelectEnemy(enemys,current_enemy)
 	local min_priority = -1
 	local priority
 	local min_distance = 100
