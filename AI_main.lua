@@ -2781,150 +2781,117 @@ end
 --### DoKiteAdjust ###
 --####################
 
-function DoKiteAdjust(myid,enemy)
-	local step
-	local target=GetV(V_TARGET,enemy)
-	if (IsFriend(target)==1 or target==MyID) then
-		step=KiteStep
-	else
-		step=KiteParanoidStep
-	end
-	local x,y=GetV(V_POSITION,myid)
-	local ox,oy=GetV(V_POSITION,GetV(V_OWNER,myid))
-	local ex,ey=GetV(V_POSITION,enemy)
-	local xoptions ={[2]=1,[0]=1,[1]=1}
-	local yoptions ={[2]=1,[0]=1,[1]=1}
-	local xdirection,ydirection=0,0
-	if (x > ex) then
-		xoptions[2]=0
-	elseif (x < ex) then
-		xoptions[1]=0
-	else
-		yoptions[0]=0
-	end
-	if (y > ey) then
-		yoptions[2]=0
-	elseif (y < ey) then
-		yoptions[1]=0
-	else
-		xoptions[0]=0
-	end
-	if (ox > x) then
-		if (xoptions[1]==1) then
-			xdirection=1
-		elseif (xoptions[0]==1) then
-			xdirection=0
-		elseif (xoptions[2]==1 and (ox-x+step) <= KiteBounds) then
-			xdirection=-1
-		elseif	(ey < y) then
-			xdirection=0
-		else
-			xdirection=1
-		end
-	else
-		if (xoptions[2]==1) then
-			xdirection=-1
-		elseif (xoptions[0]==1) then
-			xdirection=0
-		elseif (xoptions[1]==1 and (x-ox+step) <= KiteBounds) then
-			xdirection=1
-		elseif	(ey > y) then
-			xdirection=0
-		else
-			xdirection=-1
-		end
-	end
-	if (oy > y) then
-		if (yoptions[1]==1) then
-			ydirection=1
-		elseif (yoptions[0]==1 and xdirection~=0) then
-			ydirection=0
-		elseif (yoptions[2]==1 and oy-y+step <= step) then
-			ydirection=-1
-		elseif	(ex > x and xdirection~=0) then
-			ydirection=0
-		else
-			ydirection=1
-		end
-	else 
-		if (yoptions[2]==1) then
-			ydirection=-1
-		elseif (yoptions[0]==1 and xdirection~=0) then
-			ydirection=0
-		elseif (yoptions[1]==1 and y-oy+step <= KiteBounds) then
-			ydirection=1
-		elseif	(ex < x and xdirection~=0) then
-			ydirection=0
-		else
-			ydirection=-1
-		end
-	end
-	TraceAI("Kiteing in "..xdirection..","..ydirection.." direction")
-	MyDestX=x+step*xdirection
-	MyDestY=y+step*ydirection
-	Move(myid,MyDestX,MyDestY)
+function DoKiteAdjust(myid, enemy)
+    local target = GetV(V_TARGET, enemy)
+    local step = (IsFriend(target) == 1 or target == MyID) and KiteStep or KiteParanoidStep
+
+    local x, y = GetV(V_POSITION, myid)
+    local ox, oy = GetV(V_POSITION, GetV(V_OWNER, myid))
+    local ex, ey = GetV(V_POSITION, enemy)
+
+    -- Determine possible movement directions
+    local xoptions = { [2] = 1, [0] = 1, [1] = 1 }
+    local yoptions = { [2] = 1, [0] = 1, [1] = 1 }
+
+    if x > ex then
+        xoptions[2] = 0
+    elseif x < ex then
+        xoptions[1] = 0
+    else
+        yoptions[0] = 0
+    end
+
+    if y > ey then
+        yoptions[2] = 0
+    elseif y < ey then
+        yoptions[1] = 0
+    else
+        xoptions[0] = 0
+    end
+
+    -- Determine x direction
+    local xdirection
+    if ox > x then
+        xdirection = xoptions[1] and 1 or xoptions[0] and 0 or (xoptions[2] and (ox - x + step) <= KiteBounds) and -1 or (ey < y) and 0 or 1
+    else
+        xdirection = xoptions[2] and -1 or xoptions[0] and 0 or (xoptions[1] and (x - ox + step) <= KiteBounds) and 1 or (ey > y) and 0 or -1
+    end
+
+    -- Determine y direction
+    local ydirection
+    if oy > y then
+        ydirection = yoptions[1] and 1 or (yoptions[0] and xdirection ~= 0) and 0 or (yoptions[2] and oy - y + step <= step) and -1 or (ex > x and xdirection ~= 0) and 0 or 1
+    else
+        ydirection = yoptions[2] and -1 or (yoptions[0] and xdirection ~= 0) and 0 or (yoptions[1] and y - oy + step <= KiteBounds) and 1 or (ex < x and xdirection ~= 0) and 0 or -1
+    end
+
+    TraceAI("Kiting in " .. xdirection .. "," .. ydirection .. " direction")
+    MyDestX = x + step * xdirection
+    MyDestY = y + step * ydirection
+    Move(myid, MyDestX, MyDestY)
 end
 
-function FailSkillUse(mode) 
-	local modex=mode
-	if IsPlayer(mode)==1 then
-		mode=13
-	end
-	if SkillFailCount[mode]==nil then 
-		SkillFailCount[mode]=0
-	end
-	if SkillFailCount[mode] < SkillRetryLimit[mode] then
-		if mode == -1 then -- attack state
-			MySkillUsedCount=math.max(0,MySkillUsedCount-1)
-		elseif mode==1 then
-			GuardTimeout=1
-		elseif mode==2 then
-			QuickenTimeout=1
-		elseif mode==3 then
-			MagTimeout=1
-		elseif mode==4 then
-			SOffensiveTimeout=1
-		elseif mode==5 then
-			SDefensiveTimeout=1
-		elseif mode==6 then
-			SOwnerBuffTimeout=1
-		elseif mode==7 then
-			SightTimeout=1
-		elseif mode==9 then
-			ProvokeOwnerTimeout=1
-		elseif mode==10 then
-			SteinWandTimeout = 1
-		elseif mode==11 then
-			OffensiveOwnerTimeout = 1
-		elseif mode==12 then
-			DefensiveOwnerTimeout = 1
-		elseif mode==13 then
-			OtherOwnerTimeout = 1
-		elseif IsPlayer(modex) then
-			--logappend("AAI_PKF","skill failed on"..mode)
-			PKFriendsTimeout[modex]=1
-		else
-			OnFailUnknownMode(mode)
-		end
-		TraceAI("Skill cast appears to have failed: Mode "..mode.." fail count "..SkillFailCount[mode].." will try again")
-		logappend("AAI_SKILLFAIL","Skill cast appears to have failed: Mode "..mode.." fail count "..SkillFailCount[mode].." will try again")
-		SkillFailCount[mode]=SkillFailCount[mode]+1
-	else
-		TraceAI("Skill cast appears to have failed, but we're past the retry limit, so screw it: Mode "..mode.." fail count "..SkillFailCount[mode])
-		logappend("AAI_SKILLFAIL","Skill cast appears to have failed, but we're past the retry limit, so screw it: Mode "..mode.." fail count "..SkillFailCount[mode])
-		SkillFailCount[mode]=0
-	end
-	AutoSkillTimeout = 1
-	AutoSkillCastTimeout = 1
-	if AutoSkillCooldown[CastSkill]~=nil then
-		AutoSkillCooldown[CastSkill]=1
-	end
-	CastSkill=0
-	CastSkillLevel=0
-	CastSkillMode=0
-	CastSkillTime=0
-	CastSkillState=0	
-end	
+
+function FailSkillUse(mode)
+    -- Determine the effective mode based on whether it's a player
+    local effectiveMode = IsPlayer(mode) == 1 and 13 or mode
+
+    -- Initialize skill fail count if not already set
+    SkillFailCount[effectiveMode] = SkillFailCount[effectiveMode] or 0
+
+    -- Check if retry limit has been reached
+    if SkillFailCount[effectiveMode] < SkillRetryLimit[effectiveMode] then
+        -- Set timeouts based on the mode
+        local timeouts = {
+            [-1] = function() MySkillUsedCount = math.max(0, MySkillUsedCount - 1) end,
+            [1] = function() GuardTimeout = 1 end,
+            [2] = function() QuickenTimeout = 1 end,
+            [3] = function() MagTimeout = 1 end,
+            [4] = function() SOffensiveTimeout = 1 end,
+            [5] = function() SDefensiveTimeout = 1 end,
+            [6] = function() SOwnerBuffTimeout = 1 end,
+            [7] = function() SightTimeout = 1 end,
+            [9] = function() ProvokeOwnerTimeout = 1 end,
+            [10] = function() SteinWandTimeout = 1 end,
+            [11] = function() OffensiveOwnerTimeout = 1 end,
+            [12] = function() DefensiveOwnerTimeout = 1 end,
+            [13] = function() OtherOwnerTimeout = 1 end
+        }
+        
+        if timeouts[effectiveMode] then
+            timeouts[effectiveMode]()
+        elseif IsPlayer(mode) then
+            PKFriendsTimeout[mode] = 1
+        else
+            OnFailUnknownMode(mode)
+        end
+
+        -- Log the failure and increment fail count
+        local message = "Skill cast failed: Mode " .. mode .. ", fail count " .. SkillFailCount[effectiveMode] .. ", retrying"
+        TraceAI(message)
+        logappend("AAI_SKILLFAIL", message)
+        SkillFailCount[effectiveMode] = SkillFailCount[effectiveMode] + 1
+    else
+        -- Log when retry limit is reached and reset fail count
+        local message = "Skill cast failed, retry limit reached: Mode " .. mode .. ", fail count " .. SkillFailCount[effectiveMode]
+        TraceAI(message)
+        logappend("AAI_SKILLFAIL", message)
+        SkillFailCount[effectiveMode] = 0
+    end
+
+    -- Reset auto skill related variables
+    AutoSkillTimeout = 1
+    AutoSkillCastTimeout = 1
+    if AutoSkillCooldown[CastSkill] then
+        AutoSkillCooldown[CastSkill] = 1
+    end
+    CastSkill = 0
+    CastSkillLevel = 0
+    CastSkillMode = 0
+    CastSkillTime = 0
+    CastSkillState = 0
+end
+
 
 --########################
 --### Main AI Function ###
