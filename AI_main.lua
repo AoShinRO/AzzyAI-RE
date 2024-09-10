@@ -358,39 +358,54 @@ function	OnFOLLOW_CMD ()
 
 end
 
+-- Define a table to map command types to handler functions
+local commandHandlers = {
+    [MOVE_CMD] = function(msg) 
+        TraceAI("MOVE_CMD")
+        OnMOVE_CMD(msg[2], msg[3])
+    end,
+    [STOP_CMD] = function(msg)
+        TraceAI("STOP_CMD")
+        OnSTOP_CMD()
+    end,
+    [ATTACK_OBJECT_CMD] = function(msg)
+        TraceAI("ATTACK_OBJECT_CMD")
+        OnATTACK_OBJECT_CMD(msg[2])
+    end,
+    [ATTACK_AREA_CMD] = function(msg)
+        TraceAI("ATTACK_AREA_CMD")
+        OnATTACK_AREA_CMD(msg[2], msg[3])
+    end,
+    [PATROL_CMD] = function(msg)
+        TraceAI("PATROL_CMD")
+        OnPATROL_CMD(msg[2], msg[3])
+    end,
+    [HOLD_CMD] = function(msg)
+        TraceAI("HOLD_CMD")
+        OnHOLD_CMD()
+    end,
+    [SKILL_OBJECT_CMD] = function(msg)
+        TraceAI("SKILL_OBJECT_CMD")
+        OnSKILL_OBJECT_CMD(msg[2], msg[3], msg[4], msg[5])
+    end,
+    [SKILL_AREA_CMD] = function(msg)
+        TraceAI("SKILL_AREA_CMD")
+        OnSKILL_AREA_CMD(msg[2], msg[3], msg[4], msg[5])
+    end,
+    [FOLLOW_CMD] = function(msg)
+        TraceAI("FOLLOW_CMD")
+        OnFOLLOW_CMD()
+    end
+}
 
-
-
-function	ProcessCommand (msg)
-
-	if	(msg[1] == MOVE_CMD) then
-		TraceAI ("MOVE_CMD")
-		OnMOVE_CMD (msg[2],msg[3])
-	elseif	(msg[1] == STOP_CMD) then
-		TraceAI ("STOP_CMD")
-		OnSTOP_CMD ()
-	elseif	(msg[1] == ATTACK_OBJECT_CMD) then
-		TraceAI ("ATTACK_OBJECT_CMD")
-		OnATTACK_OBJECT_CMD (msg[2])
-	elseif	(msg[1] == ATTACK_AREA_CMD) then
-		TraceAI ("ATTACK_AREA_CMD")
-		OnATTACK_AREA_CMD (msg[2],msg[3])
-	elseif	(msg[1] == PATROL_CMD) then
-		TraceAI ("PATROL_CMD")
-		OnPATROL_CMD (msg[2],msg[3])
-	elseif	(msg[1] == HOLD_CMD) then
-		TraceAI ("HOLD_CMD")
-		OnHOLD_CMD ()
-	elseif	(msg[1] == SKILL_OBJECT_CMD) then
-		TraceAI ("SKILL_OBJECT_CMD")
-		OnSKILL_OBJECT_CMD (msg[2],msg[3],msg[4],msg[5])
-	elseif	(msg[1] == SKILL_AREA_CMD) then
-		TraceAI ("SKILL_AREA_CMD")
-		OnSKILL_AREA_CMD (msg[2],msg[3],msg[4],msg[5])
-	elseif	(msg[1] == FOLLOW_CMD) then
-		TraceAI ("FOLLOW_CMD")
-		OnFOLLOW_CMD ()
-	end
+-- Main function to process commands
+function ProcessCommand(msg)
+    local handler = commandHandlers[msg[1]]
+    if handler then
+        handler(msg)
+    else
+        TraceAI("Unknown command: " .. tostring(msg[1]))
+    end
 end
 
 function ResetCounters()
@@ -921,7 +936,11 @@ end
 function ResetStateToFollow(reason)
 	MyState = FOLLOW_ST
 	Unreachable[MyEnemy] = 1
-	ResetStateToIdle(reason)
+	MyEnemy = 0
+	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
+	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+	MySkillUseCount = 0
+	TraceAI("ATTACK_ST -> FOLLOW_ST -- " .. reason)
 end
 
 function OnATTACK_ST ()
