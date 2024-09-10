@@ -167,16 +167,18 @@ function	OnMOVE_CMD (x,y)
 		return
 	end
 
-	--local curX, curY = GetV (V_POSITION,MyID)
-	--if (math.abs(x-curX)+math.abs(y-curY) > 15) then
-	--	List.pushleft (ResCmdList,{MOVE_CMD,x,y})
-	--	x = math.floor((x+curX)/2)  
-	--	y = math.floor((y+curY)/2)
-	--end
+	local curX, curY = GetV (V_POSITION,MyID)
+	if (math.abs(x-curX)+math.abs(y-curY) > IdleWalkDistance) then
+		List.pushleft (ResCmdList,{MOVE_CMD,x,y})
+		x = math.floor((x+curX)/2)
+		y = math.floor((y+curY)/2)
+	end
+
 	MyMoveX,MyMoveY=x,y
 	MyDestX,MyDestY=x,y
 	Move (MyID,MyDestX,MyDestY)	
 	MyState = MOVE_CMD_ST
+
 	if (MirAIFriending==1) then --emulate MirAI's annoying friending process
 		TraceAI("Starting Friend Routine")
 		local actors = GetActors()
@@ -631,6 +633,8 @@ function	OnFOLLOW_ST ()
 		return
 	end
 end
+
+
 
 
 function	OnCHASE_ST ()
