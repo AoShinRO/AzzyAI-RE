@@ -90,18 +90,11 @@ function doInit(myid)
 	DoneInit=1
 end
 function AdjustCapriceLevel()
-	local msp=GetV(V_MAXSP,MyID)
-	if msp < 30 and VanCapriceLevel==nil then 
-		if msp >=28 then
-			VanCapriceLevel=4
-		elseif msp >=26 then
-			VanCapriceLevel=3
-		elseif msp >=24 then
-			VanCapriceLevel=2
-		else
-			VanCapriceLevel=1
-		end
-	end
+    local msp = GetV(V_MAXSP, MyID)
+
+    if msp < 30 and VanCapriceLevel == nil then
+        VanCapriceLevel = math.max(1, math.floor((msp - 23) / 2))
+    end
 end
 function loadtimeouts()
 	if IsHomun(MyID)==1 then
