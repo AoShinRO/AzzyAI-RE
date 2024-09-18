@@ -888,17 +888,11 @@ end
 --########################
 
 function HPPercent(id)
-	local maxHP=GetV(V_MAXHP,id)
-	local curHP=GetV(V_HP,id)
-	percHP=100*curHP/maxHP
-	return percHP
+	return (100*GetV(V_HP,id)/GetV(V_MAXHP,id))
 end
 
 function SPPercent(id)
-	local maxSP=GetV(V_MAXSP,id)
-	local curSP=GetV(V_SP,id)
-	percSP=100*curSP/maxSP
-	return percSP
+	return (100*GetV(V_SP,id)/GetV(V_MAXSP,id))
 end
 
 --########################
@@ -911,10 +905,10 @@ function Move(myid,x,y)
 	local dis = GetDistance(ox,oy,x,y)
 	local dis2owner=GetDistanceAPR(GetV(V_OWNER,myid),x,y)
 	local newx,newy=x,y
-	if dis2owner > 14 then 
+	if dis2owner > IdleWalkDistance then 
 		logappend("AAI_ERROR","Attempt to move to location "..x..","..y.." which is "..dis2owner.." cells from owner, call disregarded")
 		return 
-	elseif dis > 15  then
+	elseif dis > IdleWalkDistance then
 		factor = 15/dis
 		local dx,dy = x-ox,y-oy
 		if math.random(2)==1 then
@@ -1091,107 +1085,56 @@ function	GetDistanceAPR (id1, x2,y2)
 	return math.max(math.abs(x1-x2),math.abs(y1-y2))
 end
 
+function BetterMoveToOwner(myid, range)
+    range = range or 1  -- Set default range to 1 if nil
+    local x, y = GetV(V_POSITION, myid)
+    local ox, oy = GetV(V_POSITION, GetV(V_OWNER, myid))
 
+    -- Calculate destination coordinates using math functions for brevity
+    local destx = math.max(ox - range, math.min(x, ox + range))
+    local desty = math.max(oy - range, math.min(y, oy + range))
 
-
-
-
-function BetterMoveToOwner(myid,range)
-	if (range==nil) then
-		range=1
-	end
-	local x,y = GetV(V_POSITION,myid)
-	local ox,oy = GetV(V_POSITION,GetV(V_OWNER,myid))
-	local destx,desty=0,0
-	if (x > ox+range) then
-		destx=ox+range
-	elseif (x < ox - range) then
-		destx=ox-range
-	else
-		destx=x
-	end
-	if (y > oy+range) then
-		desty=oy+range
-	elseif (y < oy - range) then
-		desty=oy-range
-	else
-		desty=y
-	end
-	MyDestX,MyDestY=destx,desty
-	Move(myid,MyDestX,MyDestY)
-	return
+    -- Set destination and move
+    -- MyDestX, MyDestY = destx, desty
+    Move(myid, MyDestX, MyDestY)
 end
-function BetterMoveToOwnerXY(myid,range)
-	if (range==nil) then
-		range=1
-	end
-	local x,y = GetV(V_POSITION,myid)
-	local ox,oy = GetV(V_POSITION,GetV(V_OWNER,myid))
-	local destx,desty=0,0
-	if (x > ox+range) then
-		destx=ox+range
-	elseif (x < ox - range) then
-		destx=ox-range
-	else
-		destx=x
-	end
-	if (y > oy+range) then
-		desty=oy+range
-	elseif (y < oy - range) then
-		desty=oy-range
-	else
-		desty=y
-	end
-	return destx,desty
+
+function BetterMoveToOwnerXY(myid, range)
+    range = range or 1  -- Default range to 1 if nil
+    local x, y = GetV(V_POSITION, myid)
+    local ox, oy = GetV(V_POSITION, GetV(V_OWNER, myid))
+
+    -- Calculate destination coordinates using math functions
+    local destx = math.max(ox - range, math.min(x, ox + range))
+    local desty = math.max(oy - range, math.min(y, oy + range))
+    -- MyDestX, MyDestY = destx, desty
+    return destx, desty
 end
-function BetterMoveToLoc(myid,range,ox,oy)
-	if (range==nil) then
-		range=1
-	end
-	local x,y = GetV(V_POSITION,myid)
-	--local ox,oy = GetV(V_POSITION,GetV(V_OWNER,myid))
-	local destx,desty=0,0
-	if (x > ox+range) then
-		destx=ox+range
-	elseif (x < ox - range) then
-		destx=ox-range
-	else
-		destx=x
-	end
-	if (y > oy+range) then
-		desty=oy+range
-	elseif (y < oy - range) then
-		desty=oy-range
-	else
-		desty=y
-	end
-	MyDestX,MyDestY=destx,desty
-	Move(myid,MyDestX,MyDestY)
-	return
+
+function BetterMoveToLoc(myid, range, ox, oy)
+    range = range or 1  -- Default range to 1 if nil
+    local x, y = GetV(V_POSITION, myid)
+
+    -- Calculate destination coordinates using math functions
+    local destx = math.max(ox - range, math.min(x, ox + range))
+    local desty = math.max(oy - range, math.min(y, oy + range))
+
+    -- Move to the calculated destination
+    Move(myid, destx, desty)
+    -- MyDestX,MyDestY=destx,desty
+    Move(myid,MyDestX,MyDestY)
+    return
 end
-function BetterMoveToLocXY(myid,range,ox,oy)
-	if (range==nil) then
-		range=1
-	end
-	local x,y = GetV(V_POSITION,myid)
-	--local ox,oy = GetV(V_POSITION,GetV(V_OWNER,myid))
-	local destx,desty=0,0
-	if (x > ox+range) then
-		destx=ox+range
-	elseif (x < ox - range) then
-		destx=ox-range
-	else
-		destx=x
-	end
-	if (y > oy+range) then
-		desty=oy+range
-	elseif (y < oy - range) then
-		desty=oy-range
-	else
-		desty=y
-	end
-	
-	return destx,desty
+
+function BetterMoveToLocXY(myid, range, ox, oy)
+    range = range or 1  -- Set default range if nil
+    local x, y = GetV(V_POSITION, myid)
+
+    -- Use math logic to calculate destination coordinates
+    local destx = math.max(ox - range, math.min(x, ox + range))
+    local desty = math.max(oy - range, math.min(y, oy + range))
+
+    return destx, desty
 end
 
 function	GetOwnerPosition (id)
@@ -1214,7 +1157,7 @@ function	IsOutOfSight (id1,id2)
 		return true
 	end
 	local d = GetDistancePR(x1,y1,x2,y2)
-	if d > 20 then
+	if d > IdleWalkDistance then
 		return true
 	else
 		return false
@@ -1234,8 +1177,8 @@ function	IsInAttackSight (myid,target,skill,level)
 	if (x1 == -1 or x2 == -1) then
 		return false
 	end
-	local d		= GetDistance (x1,y1,x2,y2)
-	local a     = AttackRange(myid,skill,level)
+	local d	= GetDistance (x1,y1,x2,y2)
+	local a = AttackRange(myid,skill,level)
 	if a >= d then
 		return true;
 	else
@@ -1281,28 +1224,15 @@ function AttackRange(myid,skill,level)
 	return a
 end
 
-function Closer(id,ox,oy)
-	local x,y=GetV(V_POSITION,id)
-	local newx,newy=0,0
-	if (ox==x) then
-		newx=x
-	elseif (ox > x) then
-		newx=ox-1
-	else
-		newx=ox+1
-	end
-	if (oy==y) then
-		newy=y
-	elseif (oy > y) then
-		newy=oy-1
-	else
-		newy=oy+1
-	end
-	return newx,newy
+function Closer(id, ox, oy)
+    local x, y = GetV(V_POSITION, id)
+
+    -- Determine new x and y positions in one line using math logic
+    local newx = ox + (x < ox and -1 or (x > ox and 1 or 0))
+    local newy = oy + (y < oy and -1 or (y > oy and 1 or 0))
+
+    return newx, newy
 end
-
-
-
 
 function GetStandPoint(myid,target,skill,level,alt)
 	local r=AttackRange(myid,skill,level)

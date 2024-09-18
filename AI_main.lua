@@ -402,6 +402,7 @@ function ProcessCommand(msg)
         handler(msg)
     else
         TraceAI("Unknown command: " .. tostring(msg[1]))
+        logappend("Unknown command: " .. tostring(msg[1]))
     end
 end
 
@@ -454,10 +455,10 @@ function OnIDLE_ST ()
 
 	-- Targeting logic
 	if SuperPassive ~= 1 then
-		local object = SelectEnemy(GetFriendTargets())
-		if object ~= 0 then -- MYOWNER_ATTACKED_IN
+		local blocklist = SelectEnemy(GetFriendTargets())
+		if blocklist ~= 0 then -- MYOWNER_ATTACKED_IN
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI("IDLE_ST -> CHASE_ST : MYOWNER_ATTACKED_IN")
 			if FastChangeCount < FastChangeLimit and FastChange_I2C == 1 then
 				OnCHASE_ST()
@@ -467,11 +468,11 @@ function OnIDLE_ST ()
 
 		-- Aggro and attack conditions
 		aggro = (HPPercent(MyID) > AggroHP and (SPPercent(MyID) > AggroSP or AggroSP == 0) and (ShouldStandby == 0 or StickyStandby == 0)) and 1 or 0
-		object = SelectEnemy(GetEnemyList(MyID, aggro))
+		blocklist = SelectEnemy(GetEnemyList(MyID, aggro))
 
-		if object ~= 0 then
+		if blocklist ~= 0 then
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI("IDLE_ST -> CHASE_ST : ATTACKED_IN")
 			if FastChangeCount < FastChangeLimit and FastChange_I2C == 1 then
 				return OnCHASE_ST()
@@ -481,10 +482,10 @@ function OnIDLE_ST ()
 
 		-- Tank mode if aggro conditions are met
 		if aggro == 1 and TankMonsterCount < TankMonsterLimit then
-			object = SelectEnemy(GetEnemyList(MyID, -1))
-			if object ~= 0 then
+			blocklist = SelectEnemy(GetEnemyList(MyID, -1))
+			if blocklist ~= 0 then
 				MyState = TANKCHASE_ST
-				MyEnemy = object
+				MyEnemy = blocklist
 				TraceAI("IDLE_ST -> TANKCHASE_ST")
 				return
 			end
@@ -712,10 +713,10 @@ function	OnCHASE_ST ()
 		else
 			aggro=0
 		end
-		object=SelectEnemy(GetEnemyList(MyID,aggro),MyEnemy)
-		if object ~= 0 then
-			TraceAI("Opportunistic target change - dropping target "..MyEnemy.." for target "..object)
-			MyEnemy=object	
+		blocklist=SelectEnemy(GetEnemyList(MyID,aggro),MyEnemy)
+		if blocklist ~= 0 then
+			TraceAI("Opportunistic target change - dropping target "..MyEnemy.." for target "..blocklist)
+			MyEnemy=blocklist	
 			EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
 			EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
 		end
@@ -1346,17 +1347,17 @@ function	OnREST_ST ()
 		return
 	end
 	if SuperPassive~=1 then
-		local	object = SelectEnemy(GetFriendTargets())
-		if (object ~= 0) then		--Check for monsters attacking owner
+		local blocklist = SelectEnemy(GetFriendTargets())
+		if (blocklist ~= 0) then		--Check for monsters attacking owner
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI ("REST_ST -> CHASE_ST : MYOWNER_ATTACKED_IN")
 			return 
 		end
-		object = SelectEnemy(GetEnemyList(MyID,0))	
-		if (object ~= 0) then
+		blocklist = SelectEnemy(GetEnemyList(MyID,0))	
+		if (blocklist ~= 0) then
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI ("REST_ST -> CHASE_ST : ATTACKED_IN")
 			return
 		end
@@ -1628,30 +1629,30 @@ function	OnMOVE_CMD_HOLD_ST ()
 		return
 	end
 	if (MoveStickyFight==1 and SuperPassive~=1 ) then
-		local	object = SelectEnemy(GetFriendTargets())
-		if (object ~= 0) then							-- MYOWNER_ATTACKED_IN
+		local blocklist = SelectEnemy(GetFriendTargets())
+		if (blocklist ~= 0) then							-- MYOWNER_ATTACKED_IN
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI ("MOVE_CMD_HOLD_ST -> CHASE_ST : MYOWNER_ATTACKED_IN")
 			if (FastChangeCount < FastChangeLimit and FastChange_I2C ==1) then
 				OnCHASE_ST()
 			end
 			return 
 		end
-		object = SelectEnemy(GetEnemyList(MyID,0))
-		if (object ~= 0) then							-- ATTACKED_IN
+		blocklist = SelectEnemy(GetEnemyList(MyID,0))
+		if (blocklist ~= 0) then							-- ATTACKED_IN
 			MyState = CHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI ("MOVE_CMD_HOLD_ST -> CHASE_ST : ATTACKED_IN")
 			if (FastChangeCount < FastChangeLimit and FastChange_I2C ==1) then
 				OnCHASE_ST()
 			end
 			return
 		end
-		object = SelectEnemy(GetEnemyList(MyID,-1))
-		if (object ~= 0) then
+		blocklist = SelectEnemy(GetEnemyList(MyID,-1))
+		if (blocklist ~= 0) then
 			MyState = TANKCHASE_ST
-			MyEnemy = object
+			MyEnemy = blocklist
 			TraceAI ("MOVE_CMD_HOLD_ST -> TANKCHASE_ST")
 			return
 		end
