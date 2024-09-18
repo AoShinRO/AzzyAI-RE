@@ -401,9 +401,9 @@ function ProcessCommand(msg)
 end
 
 function ResetCounters()
-	MyPState				= 0
-	MyPSkill				= 0
-	MyPEnemy				= 0
+	MyPState			= 0
+	MyPSkill			= 0
+	MyPEnemy			= 0
 	MyPSkillLevel			= 0
 	MySkillUsedCount		= 0
 	ChaseGiveUpCount		= 0
@@ -411,20 +411,20 @@ function ResetCounters()
 	ChaseDebuffUsed			= 0
 	AttackDebuffUsed		= 0
 	BypassKSProtect			= 0
-	BerserkMode				= 0
+	BerserkMode			= 0
 	ReturnToState			= 0
-	NewFriend				= 0
+	NewFriend			= 0
 	FriendMotionTime		= 0
 	FriendCircleIter		= 0
 	FriendCircleTimeout		= 0
 	AtkPosbugFixTimeout		= 0
-	SkillObjectCMDTimeout	= 0
+	SkillObjectCMDTimeout		= 0
 	FollowTryCount			= 0
 	MyMoveX,MyMoveY			= 0,0
 	if CastSkillMode < 0 then
-		CastSkill=0
-		CastSkillLevel=0
-		CastSkillMode=0
+		CastSkill		= 0
+		CastSkillLevel		= 0
+		CastSkillMode		= 0
 	end
 	return
 end
@@ -650,7 +650,7 @@ function	OnCHASE_ST ()
 	end
 	if(IsNotKS(MyID,MyEnemy)==0) then
 		local reason=GetKSReason(MyID,MyEnemy)
-		TraceAI ("CHASE_ST -> IDLE_ST : Enemy is taken "..reason)
+		TraceAI("CHASE_ST -> IDLE_ST : Enemy is taken "..reason)
 		MyState = IDLE_ST
 		MyEnemy = 0
 		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
@@ -662,8 +662,7 @@ function	OnCHASE_ST ()
 			return OnIDLE_ST()
 		end
 	end
-	if (true == IsOutOfSight(MyID,MyEnemy)) then	-- ENEMY_OUTSIGHT_IN
-	
+	if (true == IsOutOfSight(MyID,MyEnemy)) then	-- ENEMY_OUTSIGHT_IN	
 		MyState = IDLE_ST
 		MyEnemy = 0
 		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
@@ -2888,7 +2887,7 @@ end
 
 --###STATE PROCESSES###
 --TraceAI("SP tracking: Time: "..GetTick().." last moved: "..LastMovedTime.." last sp time "..LastSPTime)
-function ProcessCommand(State)
+function ProcessStateCommand(State)
     local commandHandlers = {
         [IDLE_ST] = OnIDLE_ST,
         [CHASE_ST] = OnCHASE_ST,
@@ -3591,6 +3590,6 @@ function AI(myid)
 			return
 		end
 	end
-	ProcessCommand(MyState)
+	ProcessStateCommand(MyState)
 	OnAIEnd()
 end
