@@ -65,28 +65,25 @@ function doInit(myid)
 	if mskill~=0 and mlevel~=0 and AoEReserveSP==1 and AutoMobMode~=0 then
 		ReserveSP=GetSkillInfo(mskill,3,mlevel)
 	end
+
 	OnInit()
-	if AggressiveRelogTracking~=1 then
-		MagTimeout=MagTimeout+500
-		SOffensiveTimeout=SOffensiveTimeout+500
-		SDefensiveTimeout=SDefensiveTimeout+500
-		SOwnerBuffTimeout=SOwnerBuffTimeout+500
-		GuardTimeout=GuardTimeout+500
-		QuickenTimeout=QuickenTimeout+500
-		OffensiveOwnerTimeout	= OffensiveOwnerTimeout+500
-		DefensiveOwnerTimeout	= DefensiveOwnerTimeout+500
-		OtherOwnerTimeout		= OtherOwnerTimeout+500
-	else
-		timelag=LastAITime_ART-GetTick()
-		MagTimeout=MagTimeout+timelag
-		SOffensiveTimeout=SOffensiveTimeout+timelag
-		SDefensiveTimeout=SDefensiveTimeout+timelag
-		SOwnerBuffTimeout=SOwnerBuffTimeout+timelag
-		GuardTimeout=GuardTimeout+timelag
-		QuickenTimeout=QuickenTimeout+timelag
-		OffensiveOwnerTimeout	= OffensiveOwnerTimeout+timelag
-		DefensiveOwnerTimeout	= DefensiveOwnerTimeout+timelag
-		OtherOwnerTimeout		= OtherOwnerTimeout+timelag
+
+	local SkillTimeouts = {
+		"MagTimeout",
+		"SOffensiveTimeout",
+		"SDefensiveTimeout",
+		"SOwnerBuffTimeout",
+		"GuardTimeout",
+		"QuickenTimeout",
+		"OffensiveOwnerTimeout",
+		"DefensiveOwnerTimeout",
+		"OtherOwnerTimeout"
+	}
+
+	local timeoutAdjustment = AggressiveRelogTracking == 1 and LastAITime_ART - GetTick() or 500
+
+	for _, TimeoutName in ipairs(SkillTimeouts) do
+		_G[TimeoutName] = _G[TimeoutName] + timeoutAdjustment
 	end
 	AdjustCapriceLevel()
 	UpdateTimeoutFile()
