@@ -112,6 +112,17 @@ function loadtimeouts()
 end
 
 --########################################
+--### Simplifyed Reseting Calls        ###
+--### by AoShinHo  		       ###
+--########################################
+
+function ResetMyEnemyVars()
+	MyEnemy = 0
+	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
+	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+end
+
+--########################################
 --### Friend the merc/homun - old one  ###
 --### by Misch, new one by Dr. Azzy    ###
 --########################################
@@ -209,9 +220,7 @@ function	OnSTOP_CMD ()
 	MyState = IDLE_ST
 	MyDestX = 0
 	MyDestY = 0
-	MyEnemy = 0
-	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+	ResetMyEnemyVars()
 	MySkill = 0
 
 end
@@ -240,9 +249,7 @@ function	OnATTACK_AREA_CMD (x,y)
 	end
 	MyDestX = x
 	MyDestY = y
-	MyEnemy = 0
-	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+	ResetMyEnemyVars()
 	MyState = ATTACK_AREA_CMD_ST
 	
 end
@@ -266,9 +273,7 @@ function	OnHOLD_CMD ()
 	logappend("AAI_ERROR","HOLD_CMD sent! This should NEVER HAPPEN!")
 	MyDestX = 0
 	MyDestY = 0
-	MyEnemy = 0
-	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+	ResetMyEnemyVars()
 	MyState = HOLD_CMD_ST
 
 end
@@ -331,9 +336,7 @@ function	OnFOLLOW_CMD ()
 		end
 		BetterMoveToOwner (MyID,FollowStayBack)
 		MyState = FOLLOW_CMD_ST
-		MyEnemy = 0 
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MySkill = 0
 		TraceAI ("OnFOLLOW_CMD")
 	else
@@ -341,9 +344,7 @@ function	OnFOLLOW_CMD ()
 			ShouldStandby=0
 		end
 		MyState = IDLE_ST
-		MyEnemy = 0 
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MySkill = 0
 		TraceAI ("FOLLOW_CMD_ST --> IDLE_ST")
 	end
@@ -524,7 +525,7 @@ end
 
 function	OnFOLLOW_ST ()
 
-	TraceAI ("OnFOLLOW_ST - follow try count: "..FollowTryCount.." ownerpos: "..formatpos(GetV(V_POSITION,GetV(V_OWNER,MyID))).."my pos history:"..formatmypos(10))
+	TraceAI ("OnFOLLOW_ST - follow try count: "..FollowTryCount.." ownerpos: "..formatpos(GetV(V_POSITION,GetV(V_OWNER,MyID))).." my pos history:"..formatmypos(10))
 	local dist = GetDistanceFromOwner(MyID)
 	if dist > GetMoveBounds() then 
 		ReturnToMoveHold = 0
@@ -536,7 +537,7 @@ function	OnFOLLOW_ST ()
 	if (dist <= DiagonalDist(FollowStayBack+1)) then		--  DESTINATION_ARRIVED_IN 
 		FollowTryCount=0
 		MyState = IDLE_ST
-		TraceAI ("FOLLOW_ST -> IDLE_ST ownerpos: "..formatpos(GetV(V_POSITION,GetV(V_OWNER,MyID))).."my pos history:"..formatmypos(10))
+		TraceAI ("FOLLOW_ST -> IDLE_ST ownerpos: "..formatpos(GetV(V_POSITION,GetV(V_OWNER,MyID))).." my pos history:"..formatmypos(10))
 		if (FastChangeCount < FastChangeLimit and FastChange_F2I==1) then
 			FastChangeCount = FastChangeCount+1
 			return OnIDLE_ST()
@@ -643,7 +644,7 @@ function	OnCHASE_ST ()
 		skill=nil
 		level=nil
 	end
-	if true==IsOutOfSight(MyID,MyEnemy) then
+	if true == IsOutOfSight(MyID,MyEnemy) then
 		value="true "
 	else
 		value="false"
@@ -652,9 +653,7 @@ function	OnCHASE_ST ()
 		local reason=GetKSReason(MyID,MyEnemy)
 		TraceAI("CHASE_ST -> IDLE_ST : Enemy is taken "..reason)
 		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MyDestX, MyDestY = 0,0
 		ChaseGiveUpCount=0
 		if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
@@ -662,11 +661,9 @@ function	OnCHASE_ST ()
 			return OnIDLE_ST()
 		end
 	end
-	if (true == IsOutOfSight(MyID,MyEnemy)) then	-- ENEMY_OUTSIGHT_IN	
+	if true == IsOutOfSight(MyID,MyEnemy) then	-- ENEMY_OUTSIGHT_IN	
 		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MyDestX, MyDestY = 0,0
 		TraceAI ("CHASE_ST -> IDLE_ST : Enemy out of sight")
 		ChaseGiveUpCount=0
@@ -684,9 +681,7 @@ function	OnCHASE_ST ()
 			if SelectEnemy(GetEnemyList(MyID,-2)) == MyEnemy then --Oh crap, 
 				TraceAI("CHASE_ST -> FOLLOW_ST : Target "..MyEnemy.." marked unreachable but is also rescue target! Trying follow state in hopes of a clean line of attack from owner")
 				MyState = FOLLOW_ST
-				MyEnemy = 0
-				EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-				EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+				ResetMyEnemyVars()
 				MyDestX,MyDestY=0,0
 		        ChaseGiveUpCount=0
 				return OnFOLLOW_ST()
@@ -695,9 +690,7 @@ function	OnCHASE_ST ()
 				MyDestX, MyDestY = 0,0
 				TraceAI ("CHASE_ST -> IDLE_ST : Marking target "..MyEnemy.." unreachable")
 				ChaseGiveUpCount=0
-				MyEnemy = 0
-				EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-				EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+				ResetMyEnemyVars()
 				if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
 					FastChangeCount = FastChangeCount+1
 					return OnIDLE_ST()
@@ -859,9 +852,7 @@ function	OnCHASE_ST ()
 				if AttackRange(MyID,MySkill,MySkillLevel) < 2 or alt > 0 then 
 					MyState = IDLE_ST
 					Unreachable[MyEnemy]=1
-					MyEnemy = 0
-					EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-					EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+					ResetMyEnemyVars()
 					MyDestX, MyDestY = 0,0
 					TraceAI ("CHASE_ST -> IDLE_ST : Cannot attack this target, GetStandPoint() reports that all cells around it are occupied.")
 					ChaseGiveUpCount=0
@@ -874,9 +865,7 @@ function	OnCHASE_ST ()
 					if x==-1 or y==-1 then
 						MyState = IDLE_ST
 						Unreachable[MyEnemy]=1
-						MyEnemy = 0
-						EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-						EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+						ResetMyEnemyVars()
 						MyDestX, MyDestY = 0,0
 						TraceAI ("CHASE_ST -> IDLE_ST : Cannot attack this target, GetStandPoint() can't get an unoccupied cell")
 						ChaseGiveUpCount=0
@@ -900,9 +889,7 @@ function	OnCHASE_ST ()
 		else --if ChaseGiveUpCount > 4 then
 			MyState = IDLE_ST
 			Unreachable[MyEnemy]=1
-			MyEnemy = 0
-			EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-			EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+			ResetMyEnemyVars()
 			MyDestX, MyDestY = 0,0
 			TraceAI ("CHASE_ST -> IDLE_ST : Following enemy would exceed move bounds."..x..","..y.."mypos "..MyPosX[1]..","..MyPosY[1].."owner pos"..ox..","..oy.." enemypos "..ex..","..ey.." GetDistanceAPR="..GetDistanceAPR(GetV(V_OWNER,MyID),x,y))
 			ChaseGiveUpCount=0
@@ -916,34 +903,20 @@ function	OnCHASE_ST ()
 	return
 end
 
-
-function ResetStateToIdle(reason)
-	MyState = IDLE_ST
-	MyEnemy = 0
-	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-	MySkillUseCount = 0
-	TraceAI("ATTACK_ST -> IDLE_ST -- " .. reason)
-end
-
-function ResetStateToFollow(reason)
-	MyState = FOLLOW_ST
-	Unreachable[MyEnemy] = 1
-	MyEnemy = 0
-	EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
-	MySkillUseCount = 0
-	TraceAI("ATTACK_ST -> FOLLOW_ST -- " .. reason)
-end
-
 function OnATTACK_ST ()
 	TraceAI ("OnATTACK_ST MyEnemy: "..MyEnemy.." MyPos "..formatpos(GetV(V_POSITION,MyID)).." ("..GetV(V_MOTION,MyID)..") enemypos "..formatpos(GetV(V_POSITION,MyEnemy)).." ("..GetV(V_MOTION,MyEnemy)..") MyTarget: "..GetV(V_TARGET,MyID))	
 	if (true == IsOutOfSight(MyID,MyEnemy)) then -- first thing's first, if enemy is gone drop it. 
-		ResetStateToIdle("target gone")
+		MyState = IDLE_ST
+		ResetMyEnemyVars()
+		MySkillUseCount = 0
+		TraceAI("ATTACK_ST -> IDLE_ST -- target gone")
 		return OnIDLE_ST()
 	end
 	if (MOTION_DEAD == GetV(V_MOTION,MyEnemy)) then   -- Enemy dead? Okay we're done here - drop it. 
-		ResetStateToIdle("Enemy dead")
+		MyState = IDLE_ST
+		ResetMyEnemyVars()
+		MySkillUseCount = 0
+		TraceAI("ATTACK_ST -> IDLE_ST -- Enemy dead")
 		return OnIDLE_ST()
 	end
 	local mytarg=GetV(V_TARGET,MyID)
@@ -960,8 +933,11 @@ function OnATTACK_ST ()
 				Move(MyID,tx,ty)
 				TraceAI("ATTACK_ST: We've been attacking for 3 cycles, but we still haven't attacked! Something is wrong - Moving to adjust opposite")
 			elseif AttackGiveUpCount > AttackGiveUp and MyEnemies[AttackGiveUp]==MyEnemy and MyStates[AttackGiveUp]==ATTACK_ST then
+				MyState = IDLE_ST
 				Unreachable[MyEnemy]=1
-				ResetStateToIdle("We've been attacking for 5 cycles, tried moving around, and still haven't attacked it. Marking unreachable")
+				ResetMyEnemyVars()
+				MySkillUseCount = 0
+				TraceAI("ATTACK_ST -> IDLE_ST -- We've been attacking for 5 cycles, tried moving around, and still haven't attacked it. Marking unreachable")
 				return OnIDLE_ST()
 			end
 		end
@@ -983,7 +959,11 @@ function OnATTACK_ST ()
 		end
 	end
 	if (AttackTimeout < GetTick() and AttackTimeLimit > 0) then -- Attack time limit reached.
-		ResetStateToFollow("attack timeout reached, so we're probably posbugged. Dropping target and returning to owner in the hope that that sorts it out")
+		MyState = FOLLOW_ST
+		Unreachable[MyEnemy] = 1
+		ResetMyEnemyVars()
+		MySkillUseCount = 0
+		TraceAI("ATTACK_ST -> FOLLOW_ST -- attack timeout reached, so we're probably posbugged. Dropping target and returning to owner in the hope that that sorts it out")
 		return OnFOLLOW_ST()
 	end
 	
@@ -1247,9 +1227,7 @@ function	OnTANKCHASE_ST ()
 		end
 		
 		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MyDestX, MyDestY = 0,0
 		TraceAI ("TANKCHASE_ST -> IDLE_ST : ENEMY_OUTSIGHT_IN")
 		ChaseGiveUpCount=0
@@ -1265,9 +1243,7 @@ function	OnTANKCHASE_ST ()
 			return OnTANK_ST()
 		else
 			MyState = IDLE_ST
-			MyEnemy = 0
-			EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-			EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+			ResetMyEnemyVars()
 			MyDestX, MyDestY = 0,0
 			TraceAI ("TANKCHASE_ST -> IDLE_ST : Enemy is taken")
 		end
@@ -1332,9 +1308,7 @@ function	OnTANKCHASE_ST ()
 	if MyDestX==-1 or MyDestY==1 then
 		Unreachable[MyEnemy]=1
 		MyState = IDLE_ST
-		MyEnemy = 0
-		EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-		EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+		ResetMyEnemyVars()
 		MyDestX, MyDestY = 0,0
 		TraceAI ("TANKCHASE_ST -> IDLE_ST : target is surrounded so GetStandPoint can't find valid cell. Target dropped and deprioritized")
 		ChaseGiveUpCount=0
@@ -1772,9 +1746,7 @@ function OnHOLD_CMD_ST ()
 		if (d ~= -1 and d <= GetV(V_ATTACKRANGE,MyID)) then
 				Attack (MyID,MyEnemy)
 		else
-			MyEnemy = 0
-			EnemyPosX = {0,0,0,0,0,0,0,0,0,0}
-			EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
+			ResetMyEnemyVars()
 		end
 		return
 	end
@@ -2215,6 +2187,7 @@ function DoAutoBuffs(buffmode)
 			if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
 				DoSkill(skill, level, MyID)
 				ProvokeSelfTimeout = GetTick() + GetSkillInfo(skill, 8, level)
+				UpdateTimeoutFile()
 				return
 			end
 		end
@@ -2290,6 +2263,7 @@ function DoAutoBuffs(buffmode)
 				(GetAggroCount(GetV(V_OWNER, MyID)) >= UseSteinWandOwnerMob and UseSteinWandOwnerMob ~= 0) then
 				DoSkill(MH_STEINWAND, BayeriSteinWandLevel, MyID, 10)
 				SteinWandTimeout = AutoSkillCastTimeout + GetSkillInfo(MH_STEINWAND, 8, BayeriSteinWandLevel)
+				UpdateTimeoutFile()
 				return
 			end
 		end
@@ -2304,6 +2278,7 @@ function DoAutoBuffs(buffmode)
 				if skill > 0 and GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
 					DoSkill(skill, level, MyID, 9)
 					MagTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+					UpdateTimeoutFile()
 					return
 				end
 			end
@@ -2325,6 +2300,7 @@ function DoAutoBuffs(buffmode)
 					if MyASAPBuffs[3] == skill and buffmode == 3 then
 						SightTimeout = GetTick() + 20000
 						logappend("AAI_ERROR", "ASAP buff attempt canceled, delaying 20 seconds " .. FormatSkill(skill, level))
+						UpdateTimeoutFile()
 					else
 						MyPState = MyState
 						MyState = PROVOKE_ST
@@ -2338,6 +2314,7 @@ function DoAutoBuffs(buffmode)
 				else
 					DoSkill(skill, level, MyID, 7)
 					SightTimeout = AutoSkillCastTimeout + GetSkillInfo(skill, 8, level)
+					UpdateTimeoutFile()
 					return
 				end
 			end
