@@ -2896,6 +2896,46 @@ function FailSkillUse(mode)
     CastSkillState = 0
 end
 
+--###STATE PROCESSES###
+--TraceAI("SP tracking: Time: "..GetTick().." last moved: "..LastMovedTime.." last sp time "..LastSPTime)
+function ProcessCommand(State)
+    local commandHandlers = {
+        [IDLE_ST] = OnIDLE_ST,
+        [CHASE_ST] = OnCHASE_ST,
+        [ATTACK_ST] = OnATTACK_ST,
+        [FOLLOW_ST] = OnFOLLOW_ST,
+        [MOVE_CMD_ST] = OnMOVE_CMD_ST,
+        [STOP_CMD_ST] = OnSTOP_CMD_ST,
+        [ATTACK_OBJECT_CMD_ST] = OnATTACK_OBJECT_CMD_ST,
+        [ATTACK_AREA_CMD_ST] = OnATTACK_AREA_CMD_ST,
+        [PATROL_CMD_ST] = OnPATROL_CMD_ST,
+        [HOLD_CMD_ST] = OnHOLD_CMD_ST,
+        [SKILL_OBJECT_CMD_ST] = OnSKILL_OBJECT_CMD_ST,
+        [SKILL_AREA_CMD_ST] = OnSKILL_AREA_CMD_ST,
+        [FOLLOW_CMD_ST] = OnFOLLOW_CMD_ST,
+        [IDLEWALK_ST] = OnIDLEWALK_ST,
+        [ORBITWALK_ST] = OnORBITWALK_ST,
+        [REST_ST] = OnREST_ST,
+        [TANKCHASE_ST] = OnTANKCHASE_ST,
+        [TANK_ST] = OnTANK_ST,
+        [PROVOKE_ST] = OnPROVOKE_ST,
+        [MOVE_CMD_HOLD_ST] = OnMOVE_CMD_HOLD_ST,
+        [FRIEND_CROSS_ST] = OnFRIEND_CROSS_ST,
+        [FRIEND_CIRCLE_ST] = OnFRIEND_CIRCLE_ST,
+    }
+
+    local handler = commandHandlers[State]
+    if handler then
+        handler()
+    else
+        if NewState(State) == -1 then
+                -- Handle invalid states gracefully
+                TraceAI("Invalid State: "..MyState.." -> IDLE_ST")
+                logappend("AAI_ERROR", "MyState set to invalid state: "..MyState)
+                MyState = IDLE_ST
+        end
+    end
+end
 
 --########################
 --### Main AI Function ###
@@ -3561,58 +3601,6 @@ function AI(myid)
 			return
 		end
 	end
-	--###STATE PROCESSES###
-	--TraceAI("SP tracking: Time: "..GetTick().." last moved: "..LastMovedTime.." last sp time "..LastSPTime)
- 	if (MyState == IDLE_ST) then
-		OnIDLE_ST ()
-	elseif (MyState == CHASE_ST) then					
-		OnCHASE_ST ()
-	elseif (MyState == ATTACK_ST) then
-		OnATTACK_ST ()
-	elseif (MyState == FOLLOW_ST) then
-		OnFOLLOW_ST ()
-	elseif (MyState == MOVE_CMD_ST) then
-		OnMOVE_CMD_ST ()
-	elseif (MyState == STOP_CMD_ST) then
-		OnSTOP_CMD_ST ()
-	elseif (MyState == ATTACK_OBJECT_CMD_ST) then
-		OnATTACK_OBJECT_CMD_ST ()
-	elseif (MyState == ATTACK_AREA_CMD_ST) then
-		OnATTACK_AREA_CMD_ST ()
-	elseif (MyState == PATROL_CMD_ST) then
-		OnPATROL_CMD_ST ()
-	elseif (MyState == HOLD_CMD_ST) then
-		OnHOLD_CMD_ST ()
-	elseif (MyState == SKILL_OBJECT_CMD_ST) then
-		OnSKILL_OBJECT_CMD_ST ()
-	elseif (MyState == SKILL_AREA_CMD_ST) then
-		OnSKILL_AREA_CMD_ST ()
-	elseif (MyState == FOLLOW_CMD_ST) then
-		OnFOLLOW_CMD_ST ()
-	elseif (MyState == IDLEWALK_ST) then
-		OnIDLEWALK_ST ()
-	elseif (MyState == ORBITWALK_ST) then
-		OnORBITWALK_ST()
-	elseif (MyState == REST_ST) then
-		OnREST_ST()
-	elseif (MyState == TANKCHASE_ST) then
-		OnTANKCHASE_ST()
-	elseif (MyState == TANK_ST) then
-		OnTANK_ST()
-	elseif (MyState == PROVOKE_ST) then
-		OnPROVOKE_ST()
-	elseif (MyState == MOVE_CMD_HOLD_ST) then
-		OnMOVE_CMD_HOLD_ST()
-	elseif (MyState == FRIEND_CROSS_ST) then
-		OnFRIEND_CROSS_ST()
-	elseif (MyState == FRIEND_CIRCLE_ST) then
-		OnFRIEND_CIRCLE_ST()
-	else
-		if NewState(MyState)==-1 then  
-			TraceAI("Invalid State: "..MyState.." -> IDLE_ST")
-			logappend("AAI_ERROR","MyState set to invalid state: "..MyState)
-			MyState=IDLE_ST
-		end
-	end
+	ProcessCommand(MyState)
 	OnAIEnd()
 end
