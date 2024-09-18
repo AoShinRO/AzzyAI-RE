@@ -2116,47 +2116,36 @@ end
 --####################################################
 
 function DoIdleTasks()
-	local cmd = List.popleft(ResCmdList)
-	if (cmd ~= nil) then		
-		ProcessCommand(cmd)	-- Process command from the list
-		return 
-	end
+    local cmd = List.popleft(ResCmdList)
+    if cmd ~= nil then
+        ProcessCommand(cmd)
+        return
+    end
 
-	if OnIdleTasks() == 1 then
-		return
-	end
+    if OnIdleTasks() == 1 or UseAutoHeal == 2 and DoHealingTasks(MyID) == 1 or DoAutoBuffs(1) ~= 1 then
+        return
+    end
 
-	if UseAutoHeal == 2 then
-		if DoHealingTasks(MyID) == 1 then
-			return
-		end
-	end
+    local tick = GetTick()
 
-	-- Ensure auto buffs are applied
-	if DoAutoBuffs(1) ~= 1 then
-		return
-	end
+    if UseSacrificeOwner == 1 and SacrificeTimeout ~= -1 and tick > SacrificeTimeout then
+        local skill, level = GetSacrificeSkill(MyID)
+        if skill <= 0 then
+            SacrificeTimeout = -1
+        elseif GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
+            DoSkill(skill, level, GetV(V_OWNER, MyID), 7)
+            SacrificeTimeout = tick + GetSkillInfo(skill, 8, level)
+            return
+        end
+    end
 
-	if UseSacrificeOwner == 1 and SacrificeTimeout ~= -1 then
-		if GetTick() > SacrificeTimeout then
-			local skill, level = GetSacrificeSkill(MyID)
-			if skill <= 0 then
-				SacrificeTimeout = -1
-			elseif GetSkillInfo(skill, 3, level) <= GetV(V_SP, MyID) then
-				DoSkill(skill, level, GetV(V_OWNER, MyID), 7)
-				SacrificeTimeout = GetTick() + GetSkillInfo(skill, 8, level)
-				return
-			end
-		end
-	end
+    if GetV(V_MOTION, GetV(V_OWNER, MyID)) == MOTION_SIT and MyState ~= REST_ST and DoNotUseRest ~= 1 then
+        MyState = REST_ST
+        TraceAI("DoIdleTasks - Owner sitting, MyState -> REST_ST")
+        return
+    end
 
-	if GetV(V_MOTION, GetV(V_OWNER, MyID)) == MOTION_SIT and MyState ~= REST_ST and DoNotUseRest ~= 1 then
-		MyState = REST_ST
-		TraceAI("DoIdleTasks - Owner sitting, MyState -> REST_ST")
-		return
-	end
-
-	return 1
+    return 1
 end
 
 function DoAutoBuffs(buffmode)
