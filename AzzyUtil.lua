@@ -543,7 +543,7 @@ end
 
 function GetFASDirection(myid,target)
 	local x,y=GetV(V_POSITION,myid)
-	if GetDistanceA(myid,target) < 15 then
+	if GetDistanceA(myid,target) < IdleWalkDistance then
 		local mx,my=GetV(V_POSITION,target)
 		local dx=math.abs(x-mx)
 		local dy=math.abs(y-my)
@@ -586,7 +586,7 @@ function GetFASOptions(myid)
 	swoption=0
 	for k,v in pairs(Monsters) do
 		TraceAI("FAS loop id: "..k)
-		if GetDistanceA(myid,k) < 15 then
+		if GetDistanceA(myid,k) < IdleWalkDistance then
 			mx,my=GetV(V_POSITION,k)
 			dx=math.abs(x-mx)
 			dy=math.abs(y-my)
@@ -636,9 +636,9 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 			ymax=y+1
 			if directionx==1 then --East
 				xmin=x
-				xmax=x+14
+				xmax=x+IdleWalkDistance
 			else
-				xmin=x-14
+				xmin=x-IdleWalkDistance
 				xmax=x
 			end
 		else	--Vertical
@@ -646,9 +646,9 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 			xmax=x+1
 			if directiony==1 then -- north
 				ymin=y
-				ymax=y+14
+				ymax=y+IdleWalkDistance
 			else
-				ymin=y-14
+				ymin=y-IdleWalkDistance
 				ymax=y
 			end
 		end
@@ -667,7 +667,7 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 			if GetTact(TACT_BASIC,k)~=0 and IsNotKS(MyID,k)==1 then
 				mx,my=GetV(V_POSITION,k)
 				if directionx==1 then --east
-					if (mx+1>=x and x+14>=mx) then -- has prayer of hitting
+					if (mx+1>=x and x+IdleWalkDistance>=mx) then -- has prayer of hitting
 						if mx==x-1 then
 							if my==y+directiony then
 								count=count+1
@@ -676,12 +676,12 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 							if (my==y or my==y+directiony or my==y+2*directiony) then
 								count=count+1
 							end
-						elseif mx==x+14 then
-							if my==y+12*directiony then
+						elseif mx==x+IdleWalkDistance then
+							if my==y+(IdleWalkDistance-2)*directiony then
 								count=count+1
 							end
 						elseif mx==x+13 then
-							if (my==y+11*directiony or my==y+10*directiony or my==y+12*directiony) then
+							if (my==y+(IdleWalkDistance-3)*directiony or my==y+(IdleWalkDistance-5)*directiony or my==y+(IdleWalkDistance-4)*directiony) then
 								count=count+1
 							end
 						else	--not a special case
@@ -698,7 +698,7 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 						end
 					end
 				else --west
-					if mx-1<=x and x-14<=mx then -- has prayer of hitting
+					if mx-1<=x and x-IdleWalkDistance<=mx then -- has prayer of hitting
 						if mx==x+1 then
 							if my==y+directiony then
 								count=count+1
@@ -707,12 +707,12 @@ function GetFASTargetCount(myid,directionx,directiony,aggro)
 							if (my==y or my==y+directiony or my==y+2*directiony) then
 								count=count+1
 							end
-						elseif mx==x-14 then
-							if my==y+12*directiony then
+						elseif mx==x-IdleWalkDistance then
+							if my==y+(IdleWalkDistance-3)*directiony then
 								count=count+1
 							end
-						elseif mx==x-13 then
-							if (my==y+11*directiony or my==y+10*directiony or my==y+12*directiony) then
+						elseif mx==x-(IdleWalkDistance-1) then
+							if (my==y+(IdleWalkDistance-3)*directiony or my==y+10*directiony or my==y+(IdleWalkDistance-4)*directiony) then
 								count=count+1
 							end
 						else	--not a special case
@@ -909,7 +909,7 @@ function Move(myid,x,y)
 		logappend("AAI_ERROR","Attempt to move to location "..x..","..y.." which is "..dis2owner.." cells from owner, call disregarded")
 		return 
 	elseif dis > IdleWalkDistance then
-		factor = 15/dis
+		factor = IdleWalkDistance/dis
 		local dx,dy = x-ox,y-oy
 		if math.random(2)==1 then
 			dx=math.ceil(factor*dx)
@@ -925,11 +925,11 @@ function Move(myid,x,y)
 			newx=ox+dx
 			newy=oy+dy
 			MyDestX,MyDestY=newx,newy
-			TraceAI("MOVE: Attempt to move more than 15 cells, destination + MyDest adjusted: "..x..","..y.." "..dis.." "..factor.."new: "..newx..","..newy)
+			TraceAI("MOVE: Attempt to move more than IdleWalkDistance cells, destination + MyDest adjusted: "..x..","..y.." "..dis.." "..factor.."new: "..newx..","..newy)
 		else
 			newx=ox+dx
 			newy=oy+dy
-			TraceAI("MOVE: Attempt to move more than 15 cells, destination adjusted: "..x..","..y..dis.." "..factor.."new: "..newx..","..newy)
+			TraceAI("MOVE: Attempt to move more than IdleWalkDistance cells, destination adjusted: "..x..","..y..dis.." "..factor.."new: "..newx..","..newy)
 		end
 	end
 	return OldMove(myid,newx,newy)

@@ -162,7 +162,7 @@ end
 
 function	OnMOVE_CMD (x,y)
 	TraceAI ("OnMOVE_CMD")
-	if GetDistanceAPR(GetV(V_OWNER,MyID),x,y) > 15 or x==0 or y==0 then -- Bogus move command
+	if GetDistanceAPR(GetV(V_OWNER,MyID),x,y) > IdleWalkDistance or x==0 or y==0 then -- Bogus move command
 		local ox,oy=GetV(V_POSITION,GetV(V_OWNER,MyID))
 		logappend("AAI_ERROR","move command to invalid location "..formatpos(x,y).." owner pos "..formatpos(ox,oy))
 		TraceAI("OnMOVE_CMD - Command disregarded; invalid location logged")
@@ -1589,7 +1589,7 @@ end
 function	OnMOVE_CMD_ST ()
 
 	TraceAI ("OnMOVE_CMD_ST")
-	if GetDistanceAPR(GetV(V_OWNER,MyID),MyMoveX,MyMoveY) > 15 then
+	if GetDistanceAPR(GetV(V_OWNER,MyID),MyMoveX,MyMoveY) > IdleWalkDistance then
 		TraceAI("OnMOVE_CMD_ST -> IDLE_ST: Attempt to move to location off screen")
 		logappend("AAI_ERROR","We were in MOVE_CMD_ST trying to move to "..formatpos(MyMoveX,MyMoveY).." while owner standing at "..formatpos(GetV(V_POSITION,GetV(V_OWNER,MyID))))
 		MyState=IDLE_ST
