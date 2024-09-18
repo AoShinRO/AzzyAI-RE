@@ -122,6 +122,12 @@ function ResetMyEnemyVars()
 	EnemyPosY = {0,0,0,0,0,0,0,0,0,0}
 end
 
+function SetIdleResetDest()
+	MyState = IDLE_ST
+	MyDestX = 0
+	MyDestY = 0
+end
+
 --########################################
 --### Friend the merc/homun - old one  ###
 --### by Misch, new one by Dr. Azzy    ###
@@ -217,9 +223,7 @@ function	OnSTOP_CMD ()
 	if (GetV(V_MOTION,MyID) ~= MOTION_STAND) then
 		Move (MyID,GetV(V_POSITION,MyID))
 	end
-	MyState = IDLE_ST
-	MyDestX = 0
-	MyDestY = 0
+	SetIdleResetDest()
 	ResetMyEnemyVars()
 	MySkill = 0
 
@@ -652,9 +656,8 @@ function	OnCHASE_ST ()
 	if(IsNotKS(MyID,MyEnemy)==0) then
 		local reason=GetKSReason(MyID,MyEnemy)
 		TraceAI("CHASE_ST -> IDLE_ST : Enemy is taken "..reason)
-		MyState = IDLE_ST
+		SetIdleResetDest()
 		ResetMyEnemyVars()
-		MyDestX, MyDestY = 0,0
 		ChaseGiveUpCount=0
 		if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
 			FastChangeCount = FastChangeCount+1
@@ -662,9 +665,8 @@ function	OnCHASE_ST ()
 		end
 	end
 	if true == IsOutOfSight(MyID,MyEnemy) then	-- ENEMY_OUTSIGHT_IN	
-		MyState = IDLE_ST
+		SetIdleResetDest()
 		ResetMyEnemyVars()
-		MyDestX, MyDestY = 0,0
 		TraceAI ("CHASE_ST -> IDLE_ST : Enemy out of sight")
 		ChaseGiveUpCount=0
 		
@@ -686,8 +688,7 @@ function	OnCHASE_ST ()
 		        ChaseGiveUpCount=0
 				return OnFOLLOW_ST()
 			else
-				MyState = IDLE_ST
-				MyDestX, MyDestY = 0,0
+				SetIdleResetDest()
 				TraceAI ("CHASE_ST -> IDLE_ST : Marking target "..MyEnemy.." unreachable")
 				ChaseGiveUpCount=0
 				ResetMyEnemyVars()
@@ -850,10 +851,9 @@ function	OnCHASE_ST ()
 			x,y = GetStandPoint(MyID,MyEnemy,MySkill,MySkillLevel,alt)
 			if x==-1 or y==-1 then
 				if AttackRange(MyID,MySkill,MySkillLevel) < 2 or alt > 0 then 
-					MyState = IDLE_ST
+					SetIdleResetDest()
 					Unreachable[MyEnemy]=1
 					ResetMyEnemyVars()
-					MyDestX, MyDestY = 0,0
 					TraceAI ("CHASE_ST -> IDLE_ST : Cannot attack this target, GetStandPoint() reports that all cells around it are occupied.")
 					ChaseGiveUpCount=0
 					if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
@@ -863,10 +863,9 @@ function	OnCHASE_ST ()
 				else
 					x,y = GetStandPoint(MyID,MyEnemy,MySkill,MySkillLevel,1)
 					if x==-1 or y==-1 then
-						MyState = IDLE_ST
+						SetIdleResetDest()
 						Unreachable[MyEnemy]=1
 						ResetMyEnemyVars()
-						MyDestX, MyDestY = 0,0
 						TraceAI ("CHASE_ST -> IDLE_ST : Cannot attack this target, GetStandPoint() can't get an unoccupied cell")
 						ChaseGiveUpCount=0
 						if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
@@ -887,10 +886,9 @@ function	OnCHASE_ST ()
 				TraceAI("CHASE_ST -> CHASE_ST : Destination not changed "..MyDestX..","..MyDestY.."mypos "..MyPosX[1]..","..MyPosY[1].."owner pos"..ox..","..oy.." enemypos "..ex..","..ey.." GetDistanceAPR="..GetDistanceAPR(GetV(V_OWNER,MyID),x,y))
 			end
 		else --if ChaseGiveUpCount > 4 then
-			MyState = IDLE_ST
+			SetIdleResetDest()
 			Unreachable[MyEnemy]=1
 			ResetMyEnemyVars()
-			MyDestX, MyDestY = 0,0
 			TraceAI ("CHASE_ST -> IDLE_ST : Following enemy would exceed move bounds."..x..","..y.."mypos "..MyPosX[1]..","..MyPosY[1].."owner pos"..ox..","..oy.." enemypos "..ex..","..ey.." GetDistanceAPR="..GetDistanceAPR(GetV(V_OWNER,MyID),x,y))
 			ChaseGiveUpCount=0
 			if (FastChangeCount < FastChangeLimit and FastChange_C2I == 1) then
@@ -1226,9 +1224,8 @@ function	OnTANKCHASE_ST ()
 			Unreachable[MyEnemy]=1
 		end
 		
-		MyState = IDLE_ST
+		SetIdleResetDest()
 		ResetMyEnemyVars()
-		MyDestX, MyDestY = 0,0
 		TraceAI ("TANKCHASE_ST -> IDLE_ST : ENEMY_OUTSIGHT_IN")
 		ChaseGiveUpCount=0
 		
@@ -1242,9 +1239,8 @@ function	OnTANKCHASE_ST ()
 			TraceAI ("TANKCHASE_ST -> TANK_ST : ENEMY_INATTACKSIGHT_IN")
 			return OnTANK_ST()
 		else
-			MyState = IDLE_ST
+			SetIdleResetDest()
 			ResetMyEnemyVars()
-			MyDestX, MyDestY = 0,0
 			TraceAI ("TANKCHASE_ST -> IDLE_ST : Enemy is taken")
 		end
 		
@@ -1307,9 +1303,8 @@ function	OnTANKCHASE_ST ()
 	MyDestX, MyDestY =  GetStandPoint(MyID,MyEnemy,MySkill,MySkillLevel,alt)
 	if MyDestX==-1 or MyDestY==1 then
 		Unreachable[MyEnemy]=1
-		MyState = IDLE_ST
+		SetIdleResetDest()
 		ResetMyEnemyVars()
-		MyDestX, MyDestY = 0,0
 		TraceAI ("TANKCHASE_ST -> IDLE_ST : target is surrounded so GetStandPoint can't find valid cell. Target dropped and deprioritized")
 		ChaseGiveUpCount=0
 	end
