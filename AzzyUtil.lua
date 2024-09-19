@@ -1651,14 +1651,17 @@ function GetSAtkSkill(myid)
 				else
 					level=SeraParalyzeLevel
 				end
-			elseif htype==ELEANOR and UseEleanorSonicClaw==1 and MySpheres > 0 then
+			elseif htype==ELEANOR and UseEleanorSonicClaw==1 then
 				skill=MH_SONIC_CRAW
 				if EleanorSonicClawLevel==nil then
 					level=SkillList[htype][skill]
 				else
 					level=EleanorSonicClawLevel
 				end
-				if EleanorMode==1 and EleanorDoNotSwitchMode==0 then
+				if (EleanorMode==1 or MySpheres == 0) and EleanorDoNotSwitchMode==0 then
+					if MySpheres == 0 then
+						DoSkill(MH_STYLE_CHANGE,1,MyID,8)
+					end
 					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				end
 				if(EleanorLastComboSkill == skill) then
@@ -1671,10 +1674,13 @@ function GetSAtkSkill(myid)
 				else
 					level=EleanorTinderBreakerLevel
 				end
-				if(EleanorLastComboSkill == MH_TINDER_BREAKER) then
+				if(EleanorLastComboSkill == skill) then
 					skill,level = GetGrappleSkill(myid)
 				end
-				if EleanorMode==0 and EleanorDoNotSwitchMode==0 then
+				if (EleanorMode==0 or MySpheres == 0) and EleanorDoNotSwitchMode==0 then
+					if MySpheres == 0 then
+						DoSkill(MH_STYLE_CHANGE,1,MyID,8)
+					end
 					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				end
 			end
@@ -2484,27 +2490,23 @@ function 	FormatSkill(skill,level)
 end
 
 function FormatMotion(motion)
-	if motion==0 then
-		return "Standing ("..motion..")"
-	elseif motion==1 then
-		return "Moving ("..motion..")"
-	elseif motion==2 or motion==9 then 
-		return "Attacking ("..motion..")"
-	elseif motion==3 then 
-		return "Dead ("..motion..")"
-	elseif motion==4 then 
-		return "Flinching  ("..motion..")"
-	elseif motion==5 then
-		return "Bending over ("..motion..")"
-	elseif motion==6 then
-		return "Sitting ("..motion..")"
-	elseif motion==7 then 
-		return "Using skill ("..motion..")"
-	elseif motion==8 then
-		return "Casting ("..motion..")"
-	else
-		return motion
-	end
+    local motions = {
+        [0] = "Standing",
+        [1] = "Moving",
+        [2] = "Attacking",
+        [3] = "Dead",
+        [4] = "Flinching",
+        [5] = "Bending over",
+        [6] = "Sitting",
+        [7] = "Using skill",
+        [8] = "Casting",
+        [9] = "Attacking"
+    }
+    if motions[motion] then
+        return motions[motion].." ("..motion..")"
+    else
+        return motion
+    end
 end
 
 function formatval (val)
