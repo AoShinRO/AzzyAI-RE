@@ -1651,17 +1651,17 @@ function GetSAtkSkill(myid)
 				else
 					level=SeraParalyzeLevel
 				end
-			elseif htype==ELEANOR and UseEleanorSonicClaw==1 then
+			elseif htype==ELEANOR and UseEleanorSonicClaw==1 and EleanorMode == 0 then
 				skill=MH_SONIC_CRAW
 				if EleanorSonicClawLevel==nil then
 					level=SkillList[htype][skill]
 				else
 					level=EleanorSonicClawLevel
 				end
-				if(EleanorLastComboSkill == skill) then
+				if (EleanorLastComboSkill == skill or EleanorLastComboSkill == MH_SILVERVEIN_RUSH) then
 					skill,level = GetComboSkill(myid)
 				end
-				if EleanorMode==1 and EleanorDoNotSwitchMode==0 then
+				if (EleanorMode == 1 or (EleanorLastComboSkill == MH_MIDNIGHT_FRENZY and UseEleanorTinderBreaker==1)) and EleanorDoNotSwitchMode==0 then
 					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				end
 			elseif htype==ELEANOR and UseEleanorTinderBreaker==1 then
@@ -1671,13 +1671,12 @@ function GetSAtkSkill(myid)
 				else
 					level=EleanorTinderBreakerLevel
 				end
-				if EleanorLastComboSkill == skill then
+				if (EleanorLastComboSkill == skill or EleanorLastComboSkill == MH_CBC) then
 					skill,level = GetGrappleSkill(myid)
 				end
-				if EleanorMode == 0 and EleanorDoNotSwitchMode==0 then
+				if (EleanorMode == 0 or (EleanorLastComboSkill == MH_EQC and UseEleanorSonicClaw==1)) and EleanorDoNotSwitchMode==0 then
 					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				elseif EleanorMode == 1 and MySpheres < AutoComboSpheres and EleanorDoNotSwitchMode==0 then
-					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				end
 			end
@@ -2390,7 +2389,7 @@ function DoSkill(skill, level, target, mode, targx, targy)
         ComboSCTimeout = GetTick() + 2000
         ComboSVTimeout = 0
     elseif skill == MH_MIDNIGHT_FRENZY then
-        MySpheres = MySpheres - 2	
+        MySpheres = MySpheres - 2
     elseif skill == MH_CBC then
         MySpheres = MySpheres - 2
     elseif skill == MH_EQC then
@@ -2426,17 +2425,10 @@ function DoSkill(skill, level, target, mode, targx, targy)
     local delay = AutoSkillDelay + GetSkillInfo(skill, 4, level) + GetSkillInfo(skill, 5, level) * CastTimeRatio
     AutoSkillCastTimeout = delay + GetTick()
 
-    if AutoSkillCooldown[skill] then
-        AutoSkillCooldown[skill] = GetTick() + GetSkillInfo(skill, 9, level) + delay
-    end
+    AutoSkillCooldown[skill] = GetTick() + GetSkillInfo(skill, 9, level) + delay
 
     delay = delay + GetSkillInfo(skill, 6, level)
     AutoSkillTimeout = GetTick() + delay
-
-
-    --if MySpheres > 0 then
-    --   MySpheres = 0
-    --end
 
     TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay:"..delay)
     logappend("AAI_SKILLFAIL", "DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay:"..delay)
