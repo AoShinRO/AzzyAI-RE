@@ -1144,8 +1144,10 @@ function OnATTACK_ST ()
 		Attack (MyID,MyEnemy)
 		TraceAI("Normal attack vs: "..MyEnemy)
 		if GetV(V_HOMUNTYPE,MyID) == ELEANOR then
-			MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
-			UpdateTimeoutFile()
+			if EleanorMode == 0 then
+				MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
+				UpdateTimeoutFile()
+			end
 		end
 	end
 	-- else
