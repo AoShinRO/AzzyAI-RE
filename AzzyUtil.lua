@@ -2379,7 +2379,7 @@ function DoSkill(skill, level, target, mode, targx, targy)
     end
 
     if skill == MH_MIDNIGHT_FRENZY then
-        MySpheres = MySpheres - 1
+        MySpheres = MySpheres - 2
         ComboSVTimeout = 0
     elseif skill == MH_SILVERVEIN_RUSH then
         ComboSVTimeout = GetTick() + 2000
@@ -2388,8 +2388,6 @@ function DoSkill(skill, level, target, mode, targx, targy)
     elseif skill == MH_SONIC_CRAW then
         ComboSCTimeout = GetTick() + 2000
         ComboSVTimeout = 0
-    elseif skill == MH_MIDNIGHT_FRENZY then
-        MySpheres = MySpheres - 2
     elseif skill == MH_CBC then
         MySpheres = MySpheres - 2
     elseif skill == MH_EQC then
@@ -2425,7 +2423,9 @@ function DoSkill(skill, level, target, mode, targx, targy)
     local delay = AutoSkillDelay + GetSkillInfo(skill, 4, level) + GetSkillInfo(skill, 5, level) * CastTimeRatio
     AutoSkillCastTimeout = delay + GetTick()
 
-    AutoSkillCooldown[skill] = GetTick() + GetSkillInfo(skill, 9, level) + delay
+    if AutoSkillCooldown[skill]~=nil then
+       AutoSkillCooldown[skill]=GetTick()+GetSkillInfo(skill,9,level)+delay
+    end
 
     delay = delay + GetSkillInfo(skill, 6, level)
     AutoSkillTimeout = GetTick() + delay

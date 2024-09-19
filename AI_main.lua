@@ -85,6 +85,7 @@ function doInit(myid)
 	for _, TimeoutName in ipairs(SkillTimeouts) do
 		_G[TimeoutName] = _G[TimeoutName] + timeoutAdjustment
 	end
+	EleanorMode = 0
 	AdjustCapriceLevel()
 	UpdateTimeoutFile()
 	DoneInit=1
