@@ -3264,11 +3264,6 @@ function AI(myid)
 				if LastAIDelay > 220 then
 					--Skill cast successfully
 					if CastSkillMode==8 then
-						if EleanorMode==1 then
-							EleanorMode=0
-						else
-							EleanorMode=1
-						end
 						UpdateTimeoutFile()
 					end
 					TraceAI("Delay watcher: Skill use successful detected by delay - mode "..CastSkillMode.." skill "..FormatSkill(CastSkill,CastSkillLevel).." LastAIDelay "..LastAIDelay)
@@ -3300,11 +3295,6 @@ function AI(myid)
 				if LastAIDelay > 220 then
 					--Skill cast successfully
 					if CastSkillMode==8 then
-						if EleanorMode==1 then
-							EleanorMode=0
-						else
-							EleanorMode=1
-						end
 						UpdateTimeoutFile()
 					end
 					TraceAI("Delay watcher: Skill use successful - mode "..CastSkillMode.." skill "..FormatSkill(CastSkill,CastSkillLevel).." LastAIDelay "..LastAIDelay)

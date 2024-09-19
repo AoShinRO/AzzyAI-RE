@@ -173,7 +173,6 @@ SkillList[DIETER][MH_BLAZING_LAVA]=10
 
 
 
---SkillInfo[id]={name,range,SP cost,Cast Time (fixed),Cast Time (variable),Delay,targetmode,Duration,reuse delay)
 --SkillInfo[id][1]=name
 --SkillInfo[id][2]=range
 --SkillInfo[id][3]=sp cost
@@ -183,7 +182,7 @@ SkillList[DIETER][MH_BLAZING_LAVA]=10
 --SkillInfo[id][7]=target mode (0 = self targeted, 1 = enemy targeted, 2 = ground targeted) 
 --SkillInfo[id][8]=Duration (ms)
 --SkillInfo[id][9]=Reuse Delay (ms)
-
+--SkillInfo[id]={name,range,SP cost,Cast Time (fixed),Cast Time (variable),AfterCastActDelay,TargetType,Duration1,Cooldown)
 SkillInfo={}
 SkillInfo[0]={"No Skill",{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}}
 SkillInfo[HLIF_HEAL]={"Healing Hands",{0,0,0,0,0},{13,16,19,22,25},{0,0,0,0,0},{0,0,0,0,0},{20000,20000,20000,20000,20000},0,{0,0,0,0,0},{5000,5000,5000,5000,5000}}
@@ -208,10 +207,10 @@ SkillInfo[MH_OVERED_BOOST]={"Overed Boost",{0,0,0,0,0},{70,90,110,130,150},{200,
 SkillInfo[MH_ERASER_CUTTER]={"Erased Cutter",{7,7,7,7,7,7,7,7,7,7},{25,30,35,40,45,50,55,60,65,70},{0,0,0,0,0,0,0,0,0,0},{1500,1500,1500,2000,2000,2000,2500,2500,2500,3000},{2000,2000,2000,2000,2000,2000,2000,2000,2000,2000},1}
 SkillInfo[MH_XENO_SLASHER]={"Xenoslasher",{7,7,7,7,7,7,7,7,7,7},{85,90,95,100,105,110,115,120,125,130},{500,500,500,500,500,500,500,500,500,500},{1700,1900,2100,2300,2500,2700,2900,3100,3300,3500},{0,0,0,0,0,0,0,0,0,0},2}
 SkillInfo[MH_SILENT_BREEZE]={"Silent Breeze",{5,5,7,7,9},{45,54,63,72,81},{1000,800,600,400,200},{1000,1200,1400,1600,1800},{2000,2000,2000,2000,2000},1}
-SkillInfo[MH_STYLE_CHANGE]={"Style Change",{0},{35},{0},{0},{500},0}
-SkillInfo[MH_SONIC_CRAW]={"Sonic Claw",{1,1,1,1,1},{20,25,30,35,40},{0,0,0,0,0},{0,0,0,0,0},{700,700,700,700,700},1}
-SkillInfo[MH_SILVERVEIN_RUSH]={"Silvervein Rush",{1,1,1,1,1,1,1,1,1,1},{10,15,20,25,30,35,40,45,50,55},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{500,500,500,500,500,500,500,500,500,500},0}
-SkillInfo[MH_MIDNIGHT_FRENZY]={"Midnight Frenzy",{1,1,1,1,1,1,1,1,1,1},{8,16,24,32,40,48,56,64,72,80},{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0},{500,500,500,500,500,500,500,500,500,500},0}
+SkillInfo[MH_STYLE_CHANGE]={"Style Change",3,{35},0,0,{1000},0}
+SkillInfo[MH_SONIC_CRAW]={"Sonic Claw",1,{20,25,30,35,40},0,0,0,1,0,1000}
+SkillInfo[MH_SILVERVEIN_RUSH]={"Silvervein Rush",1,{17,19,21,23,25,27,29,31,33,35},0,0,0,0,5000,1500}
+SkillInfo[MH_MIDNIGHT_FRENZY]={"Midnight Frenzy",1,{18,21,24,27,30,33,36,39,42,45},0,0,0,0,10000,1500}
 SkillInfo[MH_STAHL_HORN]={"Stahl Horn",{5,6,7,8,9,10,11,12,13,14},{40,45,50,55,60,65,70,75,80,85},{200,400,600,800,1000,1200,1400,1600,1800,2000},{800,600,400,200,0,0,0,0,0,0},{3000,3000,3000,3000,3000,3000,3000,3000,3000,3000},1}
 SkillInfo[MH_GOLDENE_FERSE]={"Golden Pherze",{0,0,0,0,0},{60,65,70,75,80},{0,0,0,0,0},{1000,1200,1400,1600,1800},{500,500,500,500,500},0,{30000,45000,60000,75000,90000}}
 SkillInfo[MH_STEINWAND]={"Steinbent",{0,0,0,0,0},{80,90,100,110,120},{0,0,0,0,0},{1000,1000,1000,1000,1000},{500,500,500,500,500},0,{30000,45000,60000,75000,90000},{30000,45000,60000,75000,90000},{30000,45000,60000,75000,90000}}

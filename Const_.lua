@@ -1,5 +1,5 @@
 -- AzzyAI Constant File
-CVersion="Custom"
+CVersion="1.54"
 
 --[[
 function	TraceAI (string) end
@@ -405,6 +405,7 @@ MyPSkill				= 0
 MyPSkillLevel			= 0
 MyPMode				= 0
 MySpheres			= 0
+EleanorLastComboSkill		= 0
 MyASAPBuffs			= {0,0,0,0,0,0,0,0,0,0}
 MyPosX				= {0,0,0,0,0,0,0,0,0,0}	-- list of positions
 MyPosY				= {0,0,0,0,0,0,0,0,0,0}	-- to better sense motion
@@ -475,7 +476,7 @@ FriendCircleIter		= 0
 FriendCircleTimeout		= 0
 DoneInit				= 0
 AtkPosbugFixTimeout		= 0
-EleanorMode				= 0
+EleanorMode			= 0
 LastAITime_ART			= 0
 StickyX,StickyY			= 0,0
 MyLastSP				= 0
