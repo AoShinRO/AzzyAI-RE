@@ -2344,68 +2344,67 @@ function KiteOK(myid)
 	end
 end
 
-function DoSkill(skill,level,target,mode,targx,targy)
-	TraceAI("doskill called skill:"..skill.."level:"..level.."target"..target)
-	if skill==0 or level==0 or skill==nil or level==nil then
-		logappend("AAI_ERROR","doskill called skill:"..skill.."level:"..level.."target"..target.."mode"..mode.."state "..MyState.."pstate "..MyPState)
-		return 0
-	end
-	targetmode=GetSkillInfo(skill,7)
-	if skill==HFLI_SBR44 and AllowSBR44~=1 then
-		logappend("AAI_ERROR","Attempt to use SBR 44 blocked. If you really want to use this, set AllowSBR44 = 1 in H_Extra")
-	elseif targetmode==0 then
-		SkillObject(MyID,level,skill,MyID)
-	elseif targetmode==1 then
-		SkillObject(MyID,level,skill,target)
-	elseif targetmode==2 then
-		if targx == nil then
-			x,y=GetV(V_POSITION,target)
-			SkillGround(MyID,level,skill,x,y)
-		else
-			SkillGround(MyID,level,skill,targx,targy)
-		end
-	end
-	if mode~=nil then
-		if mode > 0 then
-			CastSkillMode=mode
-			CastSkill=skill
-			CastSkillLevel=level
-			CastSkillTime=GetTick()
-			CastSkillState=0
-			logappend("AAI_SKILLFAIL", "Mode set "..mode.." skill "..skill.." level "..level)
-		else --mode is negative, call the plugin mode handler. 
-			DoSkillHandleMode(skill,level,target,mode,targx,targy)
-			logappend("AAI_SKILLFAIL", "Mode set "..mode.." skill "..skill.." level "..level)
-		end
-	end
-	delay=AutoSkillDelay + GetSkillInfo(skill,4,level)+GetSkillInfo(skill,5,level)*CastTimeRatio
-	AutoSkillCastTimeout=delay+GetTick()
-	if AutoSkillCooldown[skill]~=nil then
-		AutoSkillCooldown[skill]=GetTick()+GetSkillInfo(skill,9,level)+delay
-	end
-	delay = delay + GetSkillInfo(skill,6,level)
-	AutoSkillTimeout=GetTick()+delay
-	if AutoSkillCooldown[skill]~=nil then
-		TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay.." cooldown: "..AutoSkillCooldown[skill]-GetTick())
-	else
-		TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
-	end
-	if skill==MH_MIDNIGHT_FRENZY then
-		MySpheres = MySpheres - 2
-		ComboSVTimeout=0
-		UpdateTimeoutFile()
-	elseif skill==MH_SILVERVEIN_RUSH then
-		ComboSVTimeout=GetTick()+2000
-		ComboSCTimeout=0
-		MySpheres = MySpheres - 1
-		UpdateTimeoutFile()
-	elseif skill==MH_SONIC_CRAW then
-		ComboSCTimeout=GetTick()+2000
-		ComboSVTimeout=0
-	end
-	TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
-	logappend("AAI_SKILLFAIL", "DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay "..delay)
-	return
+function DoSkill(skill, level, target, mode, targx, targy)
+    TraceAI("DoSkill called - skill:"..skill.." level:"..level.." target:"..target)
+
+    if not skill or not level or skill == 0 or level == 0 then
+        logappend("AAI_ERROR", "Invalid skill or level - skill:"..skill.." level:"..level.." target:"..target.." mode:"..mode.." state:"..MyState.." pstate:"..MyPState)
+        return 0
+    end
+
+    local targetmode = GetSkillInfo(skill, 7)
+
+    if skill == HFLI_SBR44 and AllowSBR44 ~= 1 then
+        logappend("AAI_ERROR", "Attempt to use SBR 44 blocked. Set AllowSBR44 = 1 in H_Extra to enable.")
+    elseif targetmode == 0 then
+        SkillObject(MyID, level, skill, MyID)
+    elseif targetmode == 1 then
+        SkillObject(MyID, level, skill, target)
+    elseif targetmode == 2 then
+        local x, y = targx or GetV(V_POSITION, target)
+        SkillGround(MyID, level, skill, x, y)
+    end
+
+    if mode then
+        if mode > 0 then
+            CastSkillMode = mode
+            CastSkill = skill
+            CastSkillLevel = level
+            CastSkillTime = GetTick()
+            CastSkillState = 0
+        else
+            DoSkillHandleMode(skill, level, target, mode, targx, targy)
+        end
+        logappend("AAI_SKILLFAIL", "Mode set "..mode.." skill:"..skill.." level:"..level)
+    end
+
+    local delay = AutoSkillDelay + GetSkillInfo(skill, 4, level) + GetSkillInfo(skill, 5, level) * CastTimeRatio
+    AutoSkillCastTimeout = delay + GetTick()
+
+    if AutoSkillCooldown[skill] then
+        AutoSkillCooldown[skill] = GetTick() + GetSkillInfo(skill, 9, level) + delay
+    end
+
+    delay = delay + GetSkillInfo(skill, 6, level)
+    AutoSkillTimeout = GetTick() + delay
+
+    TraceAI("DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay:"..delay)
+    logappend("AAI_SKILLFAIL", "DoSkill: "..skill.." level:"..level.." target:"..target.." mode:"..targetmode.." delay:"..delay)
+
+    if skill == MH_MIDNIGHT_FRENZY then
+        MySpheres = MySpheres - 2
+        ComboSVTimeout = 0
+    elseif skill == MH_SILVERVEIN_RUSH then
+        ComboSVTimeout = GetTick() + 2000
+        ComboSCTimeout = 0
+        MySpheres = MySpheres - 1
+    elseif skill == MH_SONIC_CRAW then
+        ComboSCTimeout = GetTick() + 2000
+        ComboSVTimeout = 0
+    end
+
+    UpdateTimeoutFile()
+    return
 end
 
 -- I SHOULDNT HAVE TO CODE THIS!
@@ -2464,27 +2463,24 @@ function 	FormatSkill(skill,level)
 end
 
 function FormatMotion(motion)
-	if motion==0 then
-		return "Standing ("..motion..")"
-	elseif motion==1 then
-		return "Moving ("..motion..")"
-	elseif motion==2 or motion==9 then 
-		return "Attacking ("..motion..")"
-	elseif motion==3 then 
-		return "Dead ("..motion..")"
-	elseif motion==4 then 
-		return "Flinching  ("..motion..")"
-	elseif motion==5 then
-		return "Bending over ("..motion..")"
-	elseif motion==6 then
-		return "Sitting ("..motion..")"
-	elseif motion==7 then 
-		return "Using skill ("..motion..")"
-	elseif motion==8 then
-		return "Casting ("..motion..")"
-	else
-		return motion
-	end
+    local motions = {
+        [0] = "Standing",
+        [1] = "Moving",
+        [2] = "Attacking",
+        [3] = "Dead",
+        [4] = "Flinching",
+        [5] = "Bending over",
+        [6] = "Sitting",
+        [7] = "Using skill",
+        [8] = "Casting",
+        [9] = "Attacking"
+    }
+
+    if motions[motion] then
+        return motions[motion].." ("..motion..")"
+    else
+        return motion
+    end
 end
 
 function formatval (val)
