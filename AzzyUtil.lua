@@ -2499,8 +2499,7 @@ function FormatMotion(motion)
         [5] = "Bending over",
         [6] = "Sitting",
         [7] = "Using skill",
-        [8] = "Casting",
-        [9] = "Attacking"
+        [8] = "Casting"
     }
     if motions[motion] then
         return motions[motion].." ("..motion..")"
