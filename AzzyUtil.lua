@@ -1095,7 +1095,7 @@ function BetterMoveToOwner(myid, range)
     local desty = math.max(oy - range, math.min(y, oy + range))
 
     -- Set destination and move
-    -- MyDestX, MyDestY = destx, desty
+    MyDestX, MyDestY = destx, desty
     Move(myid, MyDestX, MyDestY)
 end
 
@@ -1107,7 +1107,7 @@ function BetterMoveToOwnerXY(myid, range)
     -- Calculate destination coordinates using math functions
     local destx = math.max(ox - range, math.min(x, ox + range))
     local desty = math.max(oy - range, math.min(y, oy + range))
-    -- MyDestX, MyDestY = destx, desty
+    MyDestX, MyDestY = destx, desty
     return destx, desty
 end
 
@@ -1120,8 +1120,7 @@ function BetterMoveToLoc(myid, range, ox, oy)
     local desty = math.max(oy - range, math.min(y, oy + range))
 
     -- Move to the calculated destination
-    Move(myid, destx, desty)
-    -- MyDestX,MyDestY=destx,desty
+    MyDestX,MyDestY=destx,desty
     Move(myid,MyDestX,MyDestY)
     return
 end
@@ -1133,7 +1132,7 @@ function BetterMoveToLocXY(myid, range, ox, oy)
     -- Use math logic to calculate destination coordinates
     local destx = math.max(ox - range, math.min(x, ox + range))
     local desty = math.max(oy - range, math.min(y, oy + range))
-
+    MyDestX,MyDestY=destx,desty
     return destx, desty
 end
 
