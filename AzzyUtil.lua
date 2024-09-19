@@ -1091,11 +1091,10 @@ function BetterMoveToOwner(myid, range)
     local ox, oy = GetV(V_POSITION, GetV(V_OWNER, myid))
 
     -- Calculate destination coordinates using math functions for brevity
-    local destx = math.max(ox - range, math.min(x, ox + range))
-    local desty = math.max(oy - range, math.min(y, oy + range))
+    MyDestX = math.max(ox - range, math.min(x, ox + range))
+    MyDestY = math.max(oy - range, math.min(y, oy + range))
 
     -- Set destination and move
-    MyDestX, MyDestY = destx, desty
     Move(myid, MyDestX, MyDestY)
 end
 
@@ -1105,10 +1104,9 @@ function BetterMoveToOwnerXY(myid, range)
     local ox, oy = GetV(V_POSITION, GetV(V_OWNER, myid))
 
     -- Calculate destination coordinates using math functions
-    local destx = math.max(ox - range, math.min(x, ox + range))
-    local desty = math.max(oy - range, math.min(y, oy + range))
-    MyDestX, MyDestY = destx, desty
-    return destx, desty
+    MyDestX = math.max(ox - range, math.min(x, ox + range))
+    MyDestY = math.max(oy - range, math.min(y, oy + range))
+    return MyDestX, MyDestY
 end
 
 function BetterMoveToLoc(myid, range, ox, oy)
@@ -1116,11 +1114,10 @@ function BetterMoveToLoc(myid, range, ox, oy)
     local x, y = GetV(V_POSITION, myid)
 
     -- Calculate destination coordinates using math functions
-    local destx = math.max(ox - range, math.min(x, ox + range))
-    local desty = math.max(oy - range, math.min(y, oy + range))
+    MyDestX = math.max(ox - range, math.min(x, ox + range))
+    MyDestY = math.max(oy - range, math.min(y, oy + range))
 
     -- Move to the calculated destination
-    MyDestX,MyDestY=destx,desty
     Move(myid,MyDestX,MyDestY)
     return
 end
@@ -1130,10 +1127,10 @@ function BetterMoveToLocXY(myid, range, ox, oy)
     local x, y = GetV(V_POSITION, myid)
 
     -- Use math logic to calculate destination coordinates
-    local destx = math.max(ox - range, math.min(x, ox + range))
-    local desty = math.max(oy - range, math.min(y, oy + range))
-    MyDestX,MyDestY=destx,desty
-    return destx, desty
+    MyDestX = math.max(ox - range, math.min(x, ox + range))
+    MyDestY = math.max(oy - range, math.min(y, oy + range))
+
+    return MyDestX, MyDestY
 end
 
 function	GetOwnerPosition (id)

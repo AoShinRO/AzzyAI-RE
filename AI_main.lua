@@ -2062,7 +2062,7 @@ function convpriority(base, aggro)
 	local priority = base
 	if base > 6 and aggro == 1 then
 		priority = base
-	elseif base == 4 or base == 3 or base == 15 then
+	elseif base == 4 or base == 3 or base == IdleWalkDistance then
 		priority = base + 1
 		if aggro == 0 then 
 			priority = priority - 2
