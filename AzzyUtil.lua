@@ -1658,14 +1658,11 @@ function GetSAtkSkill(myid)
 				else
 					level=EleanorSonicClawLevel
 				end
-				if (EleanorMode==1 or MySpheres == 0) and EleanorDoNotSwitchMode==0 then
-					if MySpheres == 0 then
-						DoSkill(MH_STYLE_CHANGE,1,MyID,8)
-					end
-					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
-				end
 				if(EleanorLastComboSkill == skill) then
 					skill,level = GetComboSkill(myid)
+				end
+				if EleanorMode==1 and EleanorDoNotSwitchMode==0 then
+					DoSkill(MH_STYLE_CHANGE,1,MyID,8)
 				end
 			elseif htype==ELEANOR and UseEleanorTinderBreaker==1 then
 				skill=MH_TINDER_BREAKER
