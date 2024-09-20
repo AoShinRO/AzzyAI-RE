@@ -2361,7 +2361,7 @@ function DoSkill(skill, level, target, mode, targx, targy)
     elseif targetmode == 1 then
         SkillObject(MyID, level, skill, target)
     elseif targetmode == 2 then
-        local x, y = targx or GetV(V_POSITION, target)
+        local x, y = targx,targy or GetV(V_POSITION, target)
         SkillGround(MyID, level, skill, x, y)
     end
 
@@ -2401,6 +2401,17 @@ function DoSkill(skill, level, target, mode, targx, targy)
     elseif skill == MH_SONIC_CRAW then
         ComboSCTimeout = GetTick() + 2000
         ComboSVTimeout = 0
+    elseif skill == MH_TINDER_BREAKER then
+        MySpheres = MySpheres - 1
+        ComboSVTimeout = 0
+    elseif skill == MH_EQC then
+        ComboSVTimeout = GetTick() + 2000
+        ComboSCTimeout = 0
+        MySpheres = MySpheres - 1
+    elseif skill == MH_CBC then
+        ComboSCTimeout = GetTick() + 2000
+        ComboSVTimeout = 0
+        MySpheres = MySpheres - 2
     end
 
     UpdateTimeoutFile()
@@ -2472,8 +2483,7 @@ function FormatMotion(motion)
         [5] = "Bending over",
         [6] = "Sitting",
         [7] = "Using skill",
-        [8] = "Casting",
-        [9] = "Attacking"
+        [8] = "Casting"
     }
 
     if motions[motion] then
