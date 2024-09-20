@@ -1,5 +1,5 @@
 -- AzzyAI Constant File
-CVersion="1.54"
+CVersion="1.6"
 
 --[[
 function	TraceAI (string) end
@@ -284,6 +284,7 @@ DEBUFF_FREEZE_C = -8212
 DEBUFF_DECAGI_C = -8234
 DEBUFF_LEXDIV_C = -8236
 DEBUFF_BREEZE_C=-8026
+DEBUFF_ASH_C=-8043
 DEBUFF_ANY_A = 1
 DEBUFF_CRASH_A = 8225
 DEBUFF_PROVOKE_A = 8232
@@ -292,6 +293,7 @@ DEBUFF_FREEZE_A = 8212
 DEBUFF_DECAGI_A = 8234
 DEBUFF_LEXDIV_A = 8236
 DEBUFF_BREEZE_A=8026
+DEBUFF_ASH_A=8043
 
 ---------------------------
 --Tactics (SKILL CLASS)
@@ -405,7 +407,6 @@ MyPSkill				= 0
 MyPSkillLevel			= 0
 MyPMode				= 0
 MySpheres			= 0
-EleanorLastComboSkill		= 0
 MyASAPBuffs			= {0,0,0,0,0,0,0,0,0,0}
 MyPosX				= {0,0,0,0,0,0,0,0,0,0}	-- list of positions
 MyPosY				= {0,0,0,0,0,0,0,0,0,0}	-- to better sense motion
@@ -444,6 +445,7 @@ AttackTimeout			= 0 --for AttackTimeLimit
 AutoSkillCastTimeout	= 0 --Cast time timeout
 TankHitTimeout			= 0
 SkillObjectCMDTimeout   = 0
+AshTimeout 				= {0,0,0}
 --Advanced movement stuff
 --OrbitWalkStep			= 0
 IdleWalkTries			= 0
@@ -476,7 +478,7 @@ FriendCircleIter		= 0
 FriendCircleTimeout		= 0
 DoneInit				= 0
 AtkPosbugFixTimeout		= 0
-EleanorMode			= 0
+EleanorMode				= 0
 LastAITime_ART			= 0
 StickyX,StickyY			= 0,0
 MyLastSP				= 0
@@ -492,7 +494,18 @@ LastAIDelay				= 0
 MyMaxSP					= 0
 MyBuffSPCosts			= {}
 MyBuffSPCost			= 0		
+ComboSCTimeout=0
+ComboSVTimeout=0
+EleanorLastComboSkill=0
+EleanorChangeInstances=1
 
+modtwROMoveDid =0
+modtwROAttackDid=0
+modtwROSkillGroundLV,modtwROSkillGroundID,modtwROSkillGroundX,modtwROSkillGroundY,modtwROSkillObjectLV,modtwROSkillObjectID,modtwROSkillObjectTarg,modtwROAttackTarget=0,0,0,0,0,0,0,0
+modtwROAttackTarget,modtwROMoveX,modtwROMoveY=0,0,0
+LagReductionCD =0
+
+AllTargetUnreachable=0
 
 -- These need to be globals
 Actors				= {}

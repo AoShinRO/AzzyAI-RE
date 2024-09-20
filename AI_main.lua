@@ -41,18 +41,42 @@ function doInit(myid)
 	if GetV(V_SKILLATTACKRANGE,myid,HVAN_CAPRICE) > 1 then -- it was a vani
 		OldHomunType=VANILMIRTH
 	end
-	local skillAttackChecks = {
-		[MH_ERASER_CUTTER] = "UseEiraEraseCutter",
-		[MH_XENO_SLASHER] = "UseEiraXenoSlasher",
-		[MH_STAHL_HORN] = "UseBayeriStahlHorn",
-		[MH_HEILIGE_STANGE] = "UseBayeriHailegeStar",
-		[MH_NEEDLE_OF_PARALYZE] = "UseSeraParalyze",
-		[MH_POISON_MIST] = "UseSeraPoisonMist",
-		[MH_LAVA_SLIDE] = "UseDieterLavaSlide"
-	}
-	for skillID, flag in pairs(skillAttackChecks) do
-		if GetV(V_SKILLATTACKRANGE, myid, skillID) == 1 then
-			_G[flag] = 0
+	if GetV(V_SKILLATTACKRANGE,myid,MH_ERASER_CUTTER) == 1 then
+		if UseEiraEraseCutter and GetV(V_HOMUNTYPE,myid)==EIRA  then
+			UseEiraEraseCutter=0
+		end
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_XENO_SLASHER) == 1 then 
+		if UseEiraXenoSlasher and GetV(V_HOMUNTYPE,myid)==EIRA then
+			UseEiraXenoSlasher=0
+		end
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_STAHL_HORN) == 1 then 
+		if UseEiraEraseCutter and GetV(V_HOMUNTYPE,myid)==EIRA then
+			UseBayeriStahlHorn=0
+		end
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_HEILIGE_STANGE) == 1 then
+		if UseBayeriHailegeStar and GetV(V_HOMUNTYPE,myid)==BAYERI then
+			UseBayeriHailegeStar=0
+		end		
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_NEEDLE_OF_PARALYZE) == 1 then
+		if UseSeraParalyze and GetV(V_HOMUNTYPE,myid)==SERA then
+			UseSeraParalyze=0
+		end
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_POISON_MIST) < 2 then 
+		if UseSeraPoisonMist and GetV(V_HOMUNTYPE,myid)==SERA then
+			UseSeraPoisonMist=0
+		end
+		if UseSeraPainkiller and GetV(V_HOMUNTYPE,myid)==SERA then
+			UseSeraPainkiller=0
+		end
+	end
+	if GetV(V_SKILLATTACKRANGE,myid,MH_LAVA_SLIDE) == 1 then
+		if UseDieterLavaSlide and GetV(V_HOMUNTYPE,myid)==DIETER then
+			UseDieterLavaSlide=0
 		end
 	end
 	if LagReduction ==1 then 
@@ -85,6 +109,7 @@ function doInit(myid)
 	for _, TimeoutName in ipairs(SkillTimeouts) do
 		_G[TimeoutName] = _G[TimeoutName] + timeoutAdjustment
 	end
+	EleanorMode = 0
 	AdjustCapriceLevel()
 	UpdateTimeoutFile()
 	DoneInit=1
@@ -1144,8 +1169,10 @@ function OnATTACK_ST ()
 		Attack (MyID,MyEnemy)
 		TraceAI("Normal attack vs: "..MyEnemy)
 		if GetV(V_HOMUNTYPE,MyID) == ELEANOR then
-			MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
-			UpdateTimeoutFile()
+			if EleanorMode == 0 then
+				MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
+				UpdateTimeoutFile()
+			end
 		end
 	end
 	-- else
@@ -3360,8 +3387,20 @@ function AI(myid)
 			end
 		end
 	end
+
 	if clearcastskill==1 then
+		if (CastSkill==MH_CBC or CastSkill==MH_EQC or CastSkill==MH_TINDER_BREAKER) then
+			EleanorMode=0 --grappler
+			UpdateTimeoutFile()
+		elseif (CastSkill==MH_SONIC_CLAW or CastSkill==MH_SILVERVEIN_RUSH or CastSkill==MH_MIDNIGHT_FRENZY) then
+			EleanorMode=1
+			UpdateTimeoutFile()
+		end
 		SkillFailCount[CastSkillMode]=0
+		--LavaSlideMode=constant
+		if (LavaSlideMode==4 and CastSkill==MH_LAVA_SLIDE) then
+			SightTimeout=GetTick()+500
+		end
 		CastSkill=0
 		CastSkillLevel=0
 		CastSkillMode=0
