@@ -103,6 +103,15 @@ MH_HEILIGE_PFERD        = 8057
 MH_GOLDENE_TONE         = 8058
 MH_BLAZING_LAVA         = 8059
 
+
+--HomTypeMap[moduledtype]=HomType
+HomTypeMap={}
+HomTypeMap[0]=VANILMIRTH
+HomTypeMap[1]=LIF
+HomTypeMap[2]=AMISTR
+HomTypeMap[3]=FILIR
+
+
 --SkillList[homuntype][skillid]=level
 SkillList={}
 SkillList[LIF]={}
@@ -170,9 +179,7 @@ SkillList[DIETER][MH_BLAZING_LAVA]=10
 
 --SkillListM[mertype][skillid]=level
 
-
-
-
+--SkillInfo Tables
 --SkillInfo[id][1]=name
 --SkillInfo[id][2]=range
 --SkillInfo[id][3]=sp cost
@@ -182,7 +189,7 @@ SkillList[DIETER][MH_BLAZING_LAVA]=10
 --SkillInfo[id][7]=target mode (0 = self targeted, 1 = enemy targeted, 2 = ground targeted) 
 --SkillInfo[id][8]=Duration (ms)
 --SkillInfo[id][9]=Reuse Delay (ms)
---SkillInfo[id]={name,range,SP cost,Cast Time (fixed),Cast Time (variable),AfterCastActDelay,TargetType,Duration1,Cooldown)
+--SkillInfo[id]={name,range,SP cost,Cast Time (fixed),Cast Time (variable),Delay,TargetType,Duration1,Cooldown)
 SkillInfo={}
 SkillInfo[0]={"No Skill",{0,0,0,0,0,0,0,0,0,0},{0,0,0,0,0,0,0,0,0,0}}
 SkillInfo[HLIF_HEAL]={"Healing Hands",{0,0,0,0,0},{13,16,19,22,25},{0,0,0,0,0},{0,0,0,0,0},{20000,20000,20000,20000,20000},0,{0,0,0,0,0},{5000,5000,5000,5000,5000}}
@@ -191,7 +198,7 @@ SkillInfo[HLIF_CHANGE]={"Mental Charge",{0,0,0},{100,100,100},{0,0,0},{0,0,0},{2
 SkillInfo[HAMI_CASTLE]={"Castling",{0,0,0,0,0},{10,10,10,10,10},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},0}
 SkillInfo[HAMI_DEFENCE]={"Amistr Bulwark",{0,0,0,0,0},{20,25,30,35,40},{0,0,0,0,0},{0,0,0,0,0},{1000,1000,1000,1000,1000},0,{40000,35000,30000,30000,30000},{40000,35000,30000,30000,30000}}
 SkillInfo[HAMI_BLOODLUST]={"Bloodlust",{0,0,0},{120,120,120},{0,0,0},{0,0,0},{2000,2000,2000},0,{310000,610000,910000}}
-SkillInfo[HFLI_MOON]={"Moonlight",{1,1,1,1,1},{4,8,12,16,20},{0,0,0,0,0},{0,0,0,0,0},{0,0,0,0,0},1,{0,0,0,0,0},{100,100,100,100,100}}
+SkillInfo[HFLI_MOON]={"Moonlight",1,{4,8,12,16,20},0,0,0,1,0,2000}
 SkillInfo[HFLI_FLEET]={"Flitting",{0,0,0,0,0},{30,40,50,60,70},{0,0,0,0,0},{0,0,0,0,0},{1000,1000,1000,1000,1000},0,{60000,70000,80000,90000,120000}}
 SkillInfo[HFLI_SPEED]={"Accellerated Flight",{0,0,0,0,0},{30,40,50,60,70},{0,0,0,0,0},{0,0,0,0,0},{1000,1000,1000,1000,1000},0,{60000,70000,80000,90000,120000}}
 SkillInfo[HFLI_SBR44]={"SBR 44",{1,1,1},{1,1,1},{0,0,0},{0,0,0},{0,0,0},1}
@@ -207,7 +214,7 @@ SkillInfo[MH_OVERED_BOOST]={"Overed Boost",{0,0,0,0,0},{70,90,110,130,150},{200,
 SkillInfo[MH_ERASER_CUTTER]={"Erased Cutter",{7,7,7,7,7,7,7,7,7,7},{25,30,35,40,45,50,55,60,65,70},{0,0,0,0,0,0,0,0,0,0},{1500,1500,1500,2000,2000,2000,2500,2500,2500,3000},{2000,2000,2000,2000,2000,2000,2000,2000,2000,2000},1}
 SkillInfo[MH_XENO_SLASHER]={"Xenoslasher",{7,7,7,7,7,7,7,7,7,7},{85,90,95,100,105,110,115,120,125,130},{500,500,500,500,500,500,500,500,500,500},{1700,1900,2100,2300,2500,2700,2900,3100,3300,3500},{0,0,0,0,0,0,0,0,0,0},2}
 SkillInfo[MH_SILENT_BREEZE]={"Silent Breeze",{5,5,7,7,9},{45,54,63,72,81},{1000,800,600,400,200},{1000,1200,1400,1600,1800},{2000,2000,2000,2000,2000},1}
-SkillInfo[MH_STYLE_CHANGE]={"Style Change",3,{35},0,0,{1000},0}
+SkillInfo[MH_STYLE_CHANGE]={"Style Change",3,35,0,0,0,0,0,0}
 SkillInfo[MH_SONIC_CRAW]={"Sonic Claw",1,{20,25,30,35,40},0,0,0,1,0,1000}
 SkillInfo[MH_SILVERVEIN_RUSH]={"Silvervein Rush",1,{17,19,21,23,25,27,29,31,33,35},0,0,0,0,5000,1500}
 SkillInfo[MH_MIDNIGHT_FRENZY]={"Midnight Frenzy",1,{18,21,24,27,30,33,36,39,42,45},0,0,0,0,10000,1500}
@@ -216,9 +223,9 @@ SkillInfo[MH_GOLDENE_FERSE]={"Golden Pherze",{0,0,0,0,0},{60,65,70,75,80},{0,0,0
 SkillInfo[MH_STEINWAND]={"Steinbent",{0,0,0,0,0},{80,90,100,110,120},{0,0,0,0,0},{1000,1000,1000,1000,1000},{500,500,500,500,500},0,{30000,45000,60000,75000,90000},{30000,45000,60000,75000,90000},{30000,45000,60000,75000,90000}}
 SkillInfo[MH_HEILIGE_STANGE]={"Hailege Star",{9,9,9,9,9,9,9,9,9,9},{60,68,76,84,100,108,116,124,130,138},{1800,1600,1400,1200,1000,1000,1000,1000,1000,1000},{200,400,600,800,1000,1000,1000,1000,1000,1000},{5000,5000,5000,5000,5000,5000,5000,5000,5000,5000},1}
 SkillInfo[MH_ANGRIFFS_MODUS]={"Angriff Modus",{0,0,0,0,0},{60,65,70,75,80},{0,0,0,0,0},{200,400,600,800,1000},{500,500,500,500,500},0,{30000,45000,60000,75000,90000}}
-SkillInfo[MH_TINDER_BREAKER]={"Tinder Breaker",{3,4,5,6,7},{20,25,30,35,40},1000,0,0,1,0,0}
-SkillInfo[MH_CBC]={"CBC",1,{10,20,30,40,50},0,0,0,0,0,0}
-SkillInfo[MH_EQC]={"EQC",1,{24,28,32,36,40},0,0,1000,0,0,0}
+SkillInfo[MH_TINDER_BREAKER]={"Tinder Breaker",{3,4,5,6,7},{20,25,30,35,40},0,0,0,1,0,0}
+SkillInfo[MH_CBC]={"CBC",3,{10,20,30,40,50},0,0,0,0,0,0}
+SkillInfo[MH_EQC]={"EQC",3,{24,28,32,36,40},0,0,0,0,0,0}
 SkillInfo[MH_MAGMA_FLOW]={"Magma Flow",{0,0,0,0,0},{34,38,42,46,50},{2000,1500,1000,500,0},{2000,2500,3000,3500,4000},{500,500,500,500,500},0,{30000,45000,60000,75000,90000}}
 SkillInfo[MH_GRANITIC_ARMOR]={"Granitic Armor",{0,0,0,0,0},{54,58,62,66,70},{1000,1000,1000,1000,1000},{5000,4500,4000,3500,3000},{500,500,500,500,500},0,{60000,60000,60000,60000,60000}}
 SkillInfo[MH_LAVA_SLIDE]={"Lava Slide",{7,7,7,7,7,7,7,7,7,7},{40,45,50,55,60,65,70,75,80,85},{1000,1000,1000,1000,1000,1000,1000,1000,1000,1000},{5000,5000,5000,4500,4500,4500,4000,4000,4000,3500},{1000,1000,1000,1000,1000,1000,1000,1000,1000,1000},2,{8000,10000,12000,14000,16000,18000,20000,22000,24000,26000},{5000,5000,5000,5000,5000,5000,5000,5000,5000,5000}}
