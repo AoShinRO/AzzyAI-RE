@@ -498,6 +498,7 @@ ComboSCTimeout=0
 ComboSVTimeout=0
 EleanorLastComboSkill=0
 EleanorChangeInstances=1
+EleanorForceChange = 0
 
 modtwROMoveDid =0
 modtwROAttackDid=0

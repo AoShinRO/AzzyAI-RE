@@ -109,7 +109,7 @@ function doInit(myid)
 	for _, TimeoutName in ipairs(SkillTimeouts) do
 		_G[TimeoutName] = _G[TimeoutName] + timeoutAdjustment
 	end
-	EleanorMode = 0
+
 	AdjustCapriceLevel()
 	UpdateTimeoutFile()
 	DoneInit=1
@@ -1169,7 +1169,7 @@ function OnATTACK_ST ()
 		Attack (MyID,MyEnemy)
 		TraceAI("Normal attack vs: "..MyEnemy)
 		if GetV(V_HOMUNTYPE,MyID) == ELEANOR then
-			if EleanorMode == 0 then
+			if EleanorMode==0 then
 				MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
 				UpdateTimeoutFile()
 			end
@@ -1209,8 +1209,10 @@ function OnATTACK_ST ()
 		end
 		if MySkill ~=0 then
 			if GetV(V_HOMUNTYPE,MyID) == ELEANOR then
-				MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
-				UpdateTimeoutFile()
+				if EleanorMode==0 then
+					MySpheres = math.max(math.min(10,MySpheres+1/SphereTrackFactor),0)
+					UpdateTimeoutFile()
+				end
 			end
 			DoSkill(MySkill,MySkillLevel,SkillTarget,-1,SkillTargetX,SkillTargetY)
 		end
@@ -3290,7 +3292,7 @@ function AI(myid)
 			elseif CastSkillState>0 then
 				if LastAIDelay > 220 then
 					--Skill cast successfully
-					if CastSkillMode==8 then
+					if CastSkillMode==8 and EleanorForceChange == 0 then
 						if EleanorMode==1 then
 							EleanorMode=0
 						else
@@ -3326,7 +3328,7 @@ function AI(myid)
 			else -- CastSkillState is 0, so the skill hasn't started casting, but just in case it slipped by:
 				if LastAIDelay > 220 then
 					--Skill cast successfully
-					if CastSkillMode==8 then
+					if CastSkillMode==8 and EleanorForceChange == 0 then
 						if EleanorMode==1 then
 							EleanorMode=0
 						else
@@ -3389,10 +3391,10 @@ function AI(myid)
 	end
 
 	if clearcastskill==1 then
-		if (CastSkill==MH_CBC or CastSkill==MH_EQC or CastSkill==MH_TINDER_BREAKER) then
+		if (CastSkill==MH_CBC or CastSkill==MH_EQC or CastSkill==MH_TINDER_BREAKER) and EleanorForceChange == 0 then
 			EleanorMode=0 --grappler
 			UpdateTimeoutFile()
-		elseif (CastSkill==MH_SONIC_CLAW or CastSkill==MH_SILVERVEIN_RUSH or CastSkill==MH_MIDNIGHT_FRENZY) then
+		elseif (CastSkill==MH_SONIC_CLAW or CastSkill==MH_SILVERVEIN_RUSH or CastSkill==MH_MIDNIGHT_FRENZY) and EleanorForceChange == 0 then
 			EleanorMode=1
 			UpdateTimeoutFile()
 		end
