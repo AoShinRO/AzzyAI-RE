@@ -1703,14 +1703,14 @@ function GetComboSkill(myid)
 				if ComboSCTimeout > GetTick() and EleanorLastComboSkill == MH_SONIC_CRAW then
 					skill=MH_SILVERVEIN_RUSH
 					if EleanorSilverveinLevel==nil then
-						level=5
+						level=10
 					else
 						level=EleanorSilverveinLevel
 					end
 				elseif ComboSVTimeout > GetTick() and EleanorLastComboSkill == MH_SILVERVEIN_RUSH then
 					skill=MH_MIDNIGHT_FRENZY
 					if EleanorMidnightLevel==nil then
-						level=5
+						level=10
 					else
 						level=EleanorMidnightLevel
 					end
@@ -1761,7 +1761,7 @@ function GetGrappleSkill(myid)
 					if MySpheres > AutoComboSpheres then
 						skill=MH_CBC
 						if EleanorCBCLevel==nil then
-							level=10
+							level=5
 						else
 							level=EleanorCBCLevel
 						end
@@ -1770,7 +1770,7 @@ function GetGrappleSkill(myid)
 					if MySpheres > AutoComboSpheres then
 						skill=MH_EQC
 						if EleanorEQCLevel==nil then
-							level=10
+							level=5
 						else
 							level=EleanorEQCLevel
 						end
